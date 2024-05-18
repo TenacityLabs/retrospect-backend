@@ -3,10 +3,14 @@ package user
 import (
 	"net/http"
 
+	"github.com/TenacityLabs/time-capsule-backend/types"
+	"github.com/TenacityLabs/time-capsule-backend/utils"
+
 	"github.com/gorilla/mux"
 )
 
 type Handler struct {
+	store *types.UserStore
 }
 
 func NewHandler() *Handler {
@@ -23,5 +27,18 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) handleRegister(w http.ResponseWriter, r *http.Request) {
-	// Handle login
+	// get json payload
+	var payload types.RegisterUserPayload
+	err := utils.ParseJSON(r, &payload)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+	}
+
+	// TODO: check if all needed fields are present
+
+	// check if user already exists
+
+	// hash password
+	// create user
+	// return user
 }
