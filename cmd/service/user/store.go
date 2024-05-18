@@ -58,6 +58,6 @@ func (s *Store) GetUserById(id int) (*types.User, error) {
 	return nil, nil
 }
 
-func (s *Store) CreateUser(user *types.User) error {
+func (s *Store) CreateUser(user types.User) error {
 	return nil
 }
