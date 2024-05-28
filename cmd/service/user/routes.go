@@ -7,6 +7,7 @@ import (
 	"github.com/TenacityLabs/time-capsule-backend/cmd/service/auth"
 	"github.com/TenacityLabs/time-capsule-backend/types"
 	"github.com/TenacityLabs/time-capsule-backend/utils"
+	"github.com/go-playground/validator/v10"
 
 	"github.com/gorilla/mux"
 )
@@ -34,9 +35,15 @@ func (h *Handler) handleRegister(w http.ResponseWriter, r *http.Request) {
 	err := utils.ParseJSON(r, &payload)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
+		return
 	}
 
-	// TODO: check if all needed fields are present
+	// validate payload
+	if err := utils.Validate.Struct(payload); err != nil {
+		errors := err.(validator.ValidationErrors)
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("invalid payload %v", errors))
+		return
+	}
 
 	// check if user already exists
 	_, err = h.store.GetUserByEmail(payload.Email)
