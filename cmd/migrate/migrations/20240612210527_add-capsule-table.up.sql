@@ -25,5 +25,4 @@ CREATE TABLE IF NOT EXISTS capsules (
 
   PRIMARY KEY (`id`),
   UNIQUE KEY `code` (`code`)
-  CONSTRAINT chk_code_length CHECK (LENGTH(code) = 10)
 );
