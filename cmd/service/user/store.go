@@ -7,12 +7,14 @@ import (
 	"github.com/TenacityLabs/time-capsule-backend/types"
 )
 
-type Store struct {
+type UserStore struct {
 	db *sql.DB
 }
 
-func NewStore(db *sql.DB) *Store {
-	return &Store{db: db}
+func NewUserStore(db *sql.DB) *UserStore {
+	return &UserStore{
+		db: db,
+	}
 }
 
 func scanRowIntoUser(row *sql.Rows) (*types.User, error) {
@@ -33,8 +35,8 @@ func scanRowIntoUser(row *sql.Rows) (*types.User, error) {
 	return user, nil
 }
 
-func (store *Store) GetUserByEmail(email string) (*types.User, error) {
-	rows, err := store.db.Query("SELECT * FROM users WHERE email = ?", email)
+func (userStore *UserStore) GetUserByEmail(email string) (*types.User, error) {
+	rows, err := userStore.db.Query("SELECT * FROM users WHERE email = ?", email)
 	if err != nil {
 		return nil, err
 	}
@@ -54,8 +56,8 @@ func (store *Store) GetUserByEmail(email string) (*types.User, error) {
 	return user, nil
 }
 
-func (store *Store) GetUserById(userId uint) (*types.User, error) {
-	rows, err := store.db.Query("SELECT * FROM users WHERE id = ?", userId)
+func (userStore *UserStore) GetUserById(userId uint) (*types.User, error) {
+	rows, err := userStore.db.Query("SELECT * FROM users WHERE id = ?", userId)
 	if err != nil {
 		return nil, err
 	}
@@ -75,8 +77,8 @@ func (store *Store) GetUserById(userId uint) (*types.User, error) {
 	return user, nil
 }
 
-func (store *Store) CreateUser(user types.User) error {
-	_, err := store.db.Exec("INSERT INTO users (firstName, lastName, email, password) VALUES (?, ?, ?, ?)", user.FirstName, user.LastName, user.Email, user.Password)
+func (userStore *UserStore) CreateUser(user types.User) error {
+	_, err := userStore.db.Exec("INSERT INTO users (firstName, lastName, email, password) VALUES (?, ?, ?, ?)", user.FirstName, user.LastName, user.Email, user.Password)
 	if err != nil {
 		return err
 	}

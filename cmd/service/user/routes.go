@@ -14,19 +14,22 @@ import (
 )
 
 type Handler struct {
-	store types.UserStore
+	userStore types.UserStore
 }
 
-func NewHandler(store types.UserStore) *Handler {
-	return &Handler{store: store}
+func NewHandler(userStore types.UserStore) *Handler {
+	return &Handler{
+		userStore: userStore,
+	}
 }
 
 func (h *Handler) RegisterRoutes(router *mux.Router) {
-	router.HandleFunc("/login", h.handleLogin).Methods("POST")
-	router.HandleFunc("/register", h.handleRegister).Methods("POST")
+	router.HandleFunc("/user/login", h.handleLogin).Methods("POST")
+	router.HandleFunc("/user/register", h.handleRegister).Methods("POST")
+	router.HandleFunc("/user", auth.WithJWTAuth(h.handleGetUser, h.userStore)).Methods("GET")
 }
 
-func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
+func (handler *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 	// get json payload
 	var payload types.LoginUserPayload
 	err := utils.ParseJSON(r, &payload)
@@ -43,7 +46,7 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// check if user exists
-	user, err := h.store.GetUserByEmail(payload.Email)
+	user, err := handler.userStore.GetUserByEmail(payload.Email)
 	if err != nil {
 		utils.WriteError(w, http.StatusUnauthorized, fmt.Errorf("invalid credentials"))
 		return
@@ -64,7 +67,7 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJSON(w, http.StatusOK, map[string]string{"token": token})
 }
 
-func (h *Handler) handleRegister(w http.ResponseWriter, r *http.Request) {
+func (handler *Handler) handleRegister(w http.ResponseWriter, r *http.Request) {
 	// get json payload
 	var payload types.RegisterUserPayload
 	err := utils.ParseJSON(r, &payload)
@@ -81,7 +84,7 @@ func (h *Handler) handleRegister(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// check if user already exists
-	_, err = h.store.GetUserByEmail(payload.Email)
+	_, err = handler.userStore.GetUserByEmail(payload.Email)
 	if err == nil {
 		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("user with email %s already exists", payload.Email))
 		return
@@ -95,7 +98,7 @@ func (h *Handler) handleRegister(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// create user
-	err = h.store.CreateUser(types.User{
+	err = handler.userStore.CreateUser(types.User{
 		FirstName: payload.FirstName,
 		LastName:  payload.LastName,
 		Email:     payload.Email,
@@ -107,4 +110,20 @@ func (h *Handler) handleRegister(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.WriteJSON(w, http.StatusCreated, nil)
+}
+
+func (handler *Handler) handleGetUser(w http.ResponseWriter, r *http.Request) {
+	userID := auth.GetUserIdFromContext(r.Context())
+	if userID == 0 {
+		auth.PermissionDenied(w)
+		return
+	}
+
+	user, err := handler.userStore.GetUserById(userID)
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusOK, map[string]types.User{"user": *user})
 }

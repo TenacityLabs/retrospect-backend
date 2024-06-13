@@ -9,13 +9,13 @@ import (
 	"github.com/TenacityLabs/time-capsule-backend/types"
 )
 
-type Store struct {
+type CapsuleStore struct {
 	db  *sql.DB
 	rng *rand.Rand
 }
 
-func NewStore(db *sql.DB) *Store {
-	return &Store{
+func NewCapsuleStore(db *sql.DB) *CapsuleStore {
+	return &CapsuleStore{
 		db:  db,
 		rng: rand.New(rand.NewSource(time.Now().UnixNano())),
 	}
@@ -45,8 +45,8 @@ func scanRowIntoCapsule(row *sql.Rows) (*types.Capsule, error) {
 	return capsule, nil
 }
 
-func (store *Store) GetCapsules(capsuleOwnerId uint) ([]types.Capsule, error) {
-	rows, err := store.db.Query("SELECT * FROM capsules WHERE capsuleOwnerId = ?", capsuleOwnerId)
+func (capsuleStore *CapsuleStore) GetCapsules(capsuleOwnerId uint) ([]types.Capsule, error) {
+	rows, err := capsuleStore.db.Query("SELECT * FROM capsules WHERE capsuleOwnerId = ?", capsuleOwnerId)
 	if err != nil {
 		return nil, err
 	}
@@ -63,8 +63,8 @@ func (store *Store) GetCapsules(capsuleOwnerId uint) ([]types.Capsule, error) {
 	return capsules, nil
 }
 
-func (store *Store) GetCapsuleById(capsuleOwnerId uint, capsuleId uint) (*types.Capsule, error) {
-	rows, err := store.db.Query("SELECT * FROM capsules WHERE id = ?", capsuleId)
+func (capsuleStore *CapsuleStore) GetCapsuleById(capsuleOwnerId uint, capsuleId uint) (*types.Capsule, error) {
+	rows, err := capsuleStore.db.Query("SELECT * FROM capsules WHERE id = ?", capsuleId)
 	if err != nil {
 		return nil, err
 	}
@@ -89,31 +89,38 @@ const charset = "abcdefghijklmnopqrstuvwxyz" +
 	"0123456789"
 const codeLength = 10
 
-func (store *Store) generateCapsuleCode(length int) string {
+func (capsuleStore *CapsuleStore) GenerateCapsuleCode(length int) string {
 	b := make([]byte, length)
 	for i := range b {
-		b[i] = charset[store.rng.Intn(len(charset))]
+		b[i] = charset[capsuleStore.rng.Intn(len(charset))]
 	}
 	return string(b)
 }
 
-func (store *Store) CreateCapsule(capsuleOwnerId uint) error {
+func (capsuleStore *CapsuleStore) CreateCapsule(capsuleOwnerId uint) (uint, error) {
+	// generate unique capulse code
 	var capsuleCode string
 	for {
-		capsuleCode = store.generateCapsuleCode(codeLength)
+		capsuleCode = capsuleStore.GenerateCapsuleCode(codeLength)
 		var count int
-		err := store.db.QueryRow("SELECT COUNT(*) FROM capsules WHERE code = ?", capsuleCode).Scan(&count)
+		err := capsuleStore.db.QueryRow("SELECT COUNT(*) FROM capsules WHERE code = ?", capsuleCode).Scan(&count)
 		if err != nil {
-			return err
+			return 0, err
 		}
 		if count == 0 {
 			break
 		}
 	}
 
-	_, err := store.db.Exec("INSERT INTO capsules (code, capsuleOwnerId) VALUES (?, ?)", capsuleCode, capsuleOwnerId)
+	res, err := capsuleStore.db.Exec("INSERT INTO capsules (code, capsuleOwnerId) VALUES (?, ?)", capsuleCode, capsuleOwnerId)
 	if err != nil {
-		return err
+		return 0, err
 	}
-	return nil
+
+	id, err := res.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
+
+	return uint(id), nil
 }

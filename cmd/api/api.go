@@ -22,18 +22,18 @@ func NewAPIServer(addr string, db *sql.DB) *APIServer {
 	}
 }
 
-func (s *APIServer) Run() error {
+func (server *APIServer) Run() error {
 	router := mux.NewRouter()
 	subrouter := router.PathPrefix("/api/v1").Subrouter()
 
-	userStore := user.NewStore(s.db)
+	userStore := user.NewUserStore(server.db)
 	userHandler := user.NewHandler(userStore)
 	userHandler.RegisterRoutes(subrouter)
 
-	capsuleStore := capsule.NewStore(s.db)
-	capsuleHandler := capsule.NewHandler(capsuleStore)
+	capsuleStore := capsule.NewCapsuleStore(server.db)
+	capsuleHandler := capsule.NewHandler(capsuleStore, userStore)
 	capsuleHandler.RegisterRoutes(subrouter)
 
-	log.Println("Listening on", s.addr)
-	return http.ListenAndServe(s.addr, router)
+	log.Println("Listening on", server.addr)
+	return http.ListenAndServe(server.addr, router)
 }

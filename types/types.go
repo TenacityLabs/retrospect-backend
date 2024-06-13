@@ -47,7 +47,5 @@ type Capsule struct {
 type CapsuleStore interface {
 	GetCapsules(capsuleOwnerId uint) ([]Capsule, error)
 	GetCapsuleById(capsuleOwnerId uint, capsuleId uint) (*Capsule, error)
-}
-
-type CreateCapsulePayload struct {
+	CreateCapsule(capsuleOwnerId uint) (uint, error)
 }
