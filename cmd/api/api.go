@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/TenacityLabs/time-capsule-backend/cmd/service/capsule"
 	"github.com/TenacityLabs/time-capsule-backend/cmd/service/user"
 	"github.com/gorilla/mux"
 )
@@ -28,6 +29,10 @@ func (s *APIServer) Run() error {
 	userStore := user.NewStore(s.db)
 	userHandler := user.NewHandler(userStore)
 	userHandler.RegisterRoutes(subrouter)
+
+	capsuleStore := capsule.NewStore(s.db)
+	capsuleHandler := capsule.NewHandler(capsuleStore)
+	capsuleHandler.RegisterRoutes(subrouter)
 
 	log.Println("Listening on", s.addr)
 	return http.ListenAndServe(s.addr, router)

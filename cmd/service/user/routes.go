@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/TenacityLabs/time-capsule-backend/cmd/service/auth"
+	"github.com/TenacityLabs/time-capsule-backend/config"
 	"github.com/TenacityLabs/time-capsule-backend/types"
 	"github.com/TenacityLabs/time-capsule-backend/utils"
 	"github.com/go-playground/validator/v10"
@@ -26,7 +27,41 @@ func (h *Handler) RegisterRoutes(router *mux.Router) {
 }
 
 func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
-	// Handle login
+	// get json payload
+	var payload types.LoginUserPayload
+	err := utils.ParseJSON(r, &payload)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	// validate payload
+	if err := utils.Validate.Struct(payload); err != nil {
+		errors := err.(validator.ValidationErrors)
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("invalid payload %v", errors))
+		return
+	}
+
+	// check if user exists
+	user, err := h.store.GetUserByEmail(payload.Email)
+	if err != nil {
+		utils.WriteError(w, http.StatusUnauthorized, fmt.Errorf("invalid credentials"))
+		return
+	}
+
+	if !auth.ComparePasswords(user.Password, []byte(payload.Password)) {
+		utils.WriteError(w, http.StatusUnauthorized, fmt.Errorf("invalid credentials"))
+		return
+	}
+
+	secret := []byte(config.Envs.JWTSecret)
+	token, err := auth.CreateJWT(secret, user.ID)
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusOK, map[string]string{"token": token})
 }
 
 func (h *Handler) handleRegister(w http.ResponseWriter, r *http.Request) {
