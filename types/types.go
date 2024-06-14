@@ -45,7 +45,12 @@ type Capsule struct {
 }
 
 type CapsuleStore interface {
-	GetCapsules(capsuleOwnerId uint) ([]Capsule, error)
-	GetCapsuleById(capsuleOwnerId uint, capsuleId uint) (*Capsule, error)
-	CreateCapsule(capsuleOwnerId uint) (uint, error)
+	GetCapsules(capsuleOwnerID uint) ([]Capsule, error)
+	GetCapsuleById(capsuleOwnerID uint, capsuleID uint) (*Capsule, error)
+	CreateCapsule(capsuleOwnerID uint, vessel string, public bool) (uint, error)
+}
+
+type CreateCapsulePayload struct {
+	Vessel string `json:"vessel" valiedate:"required,min=1,max=32"`
+	Public bool   `json:"public" validate:"required"`
 }

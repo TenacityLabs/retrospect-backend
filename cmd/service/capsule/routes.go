@@ -1,11 +1,13 @@
 package capsule
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/TenacityLabs/time-capsule-backend/cmd/service/auth"
 	"github.com/TenacityLabs/time-capsule-backend/types"
 	"github.com/TenacityLabs/time-capsule-backend/utils"
+	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
 )
 
@@ -31,7 +33,7 @@ func (handler *Handler) handleGetCapsules(w http.ResponseWriter, r *http.Request
 
 	capsules, err := handler.capsuleStore.GetCapsules(userID)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		utils.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -39,11 +41,26 @@ func (handler *Handler) handleGetCapsules(w http.ResponseWriter, r *http.Request
 }
 
 func (handler *Handler) handleCreateCapsule(w http.ResponseWriter, r *http.Request) {
+	// get json payload
+	var payload types.CreateCapsulePayload
+	err := utils.ParseJSON(r, &payload)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	// validate payload
+	if err := utils.Validate.Struct(payload); err != nil {
+		errors := err.(validator.ValidationErrors)
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("invalid payload %v", errors))
+		return
+	}
+
 	userID := auth.GetUserIdFromContext(r.Context())
 
-	capsuleID, err := handler.capsuleStore.CreateCapsule(userID)
+	capsuleID, err := handler.capsuleStore.CreateCapsule(userID, payload.Vessel, payload.Public)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		utils.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
 	utils.WriteJSON(w, http.StatusOK, map[string]uint{"capsuleId": capsuleID})

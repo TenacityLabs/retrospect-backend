@@ -97,9 +97,10 @@ func (capsuleStore *CapsuleStore) GenerateCapsuleCode(length int) string {
 	return string(b)
 }
 
-func (capsuleStore *CapsuleStore) CreateCapsule(capsuleOwnerId uint) (uint, error) {
+func (capsuleStore *CapsuleStore) CreateCapsule(capsuleOwnerID uint, vessel string, public bool) (uint, error) {
 	// generate unique capulse code
 	var capsuleCode string
+	generateCodeAttempts := 0
 	for {
 		capsuleCode = capsuleStore.GenerateCapsuleCode(codeLength)
 		var count int
@@ -110,9 +111,26 @@ func (capsuleStore *CapsuleStore) CreateCapsule(capsuleOwnerId uint) (uint, erro
 		if count == 0 {
 			break
 		}
+		if generateCodeAttempts > 10 {
+			return 0, fmt.Errorf("failed to generate unique capsule code after 10 attempts")
+		}
+		generateCodeAttempts++
 	}
 
-	res, err := capsuleStore.db.Exec("INSERT INTO capsules (code, capsuleOwnerId) VALUES (?, ?)", capsuleCode, capsuleOwnerId)
+	// check if vessel is valid
+	allowedVessels := []string{"box", "suitcase", "guitar case", "bottle", "shoe", "garbage"}
+	validVessel := false
+	for _, allowedVessel := range allowedVessels {
+		if vessel == allowedVessel {
+			validVessel = true
+			break
+		}
+	}
+	if !validVessel {
+		return 0, fmt.Errorf("invalid vessel")
+	}
+
+	res, err := capsuleStore.db.Exec("INSERT INTO capsules (code, capsuleOwnerId, vessel, public) VALUES (?, ?, ?, ?)", capsuleCode, capsuleOwnerID, vessel, public)
 	if err != nil {
 		return 0, err
 	}
