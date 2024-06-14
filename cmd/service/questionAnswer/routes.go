@@ -12,26 +12,27 @@ import (
 )
 
 type Handler struct {
-	capsuleStore types.CapsuleStore
-	userStore    types.UserStore
-	songStore    types.SongStore
+	capsuleStore        types.CapsuleStore
+	userStore           types.UserStore
+	questionAnswerStore types.QuestionAnswerStore
 }
 
-func NewHandler(capsuleStore types.CapsuleStore, userStore types.UserStore, songStore types.SongStore) *Handler {
+func NewHandler(capsuleStore types.CapsuleStore, userStore types.UserStore, questionAnswerStore types.QuestionAnswerStore) *Handler {
 	return &Handler{
-		capsuleStore: capsuleStore,
-		userStore:    userStore,
-		songStore:    songStore,
+		capsuleStore:        capsuleStore,
+		userStore:           userStore,
+		questionAnswerStore: questionAnswerStore,
 	}
 }
 
 func (handler *Handler) RegisterRoutes(router *mux.Router) {
-	router.HandleFunc("/songs/create", auth.WithJWTAuth(handler.handleCreateSong, handler.userStore)).Methods(http.MethodPost)
+	router.HandleFunc("/question-answer/create", auth.WithJWTAuth(handler.handleCreateQuestionAnswer, handler.userStore)).Methods(http.MethodPost)
+	router.HandleFunc("/question-answer/delete", auth.WithJWTAuth(handler.handleDeleteQuestionAnswer, handler.userStore)).Methods(http.MethodPost)
 }
 
-func (handler *Handler) handleCreateSong(w http.ResponseWriter, r *http.Request) {
+func (handler *Handler) handleCreateQuestionAnswer(w http.ResponseWriter, r *http.Request) {
 	// get json payload
-	var payload types.CreateSongPayload
+	var payload types.CreateQuestionAnswerPayload
 	err := utils.ParseJSON(r, &payload)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
@@ -54,10 +55,36 @@ func (handler *Handler) handleCreateSong(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	songID, err := handler.songStore.CreateSong(userID, payload.CapsuleID, payload.SpotifyID, payload.Name, payload.ArtistName, payload.AlbumArtURL)
+	questionAnswerID, err := handler.questionAnswerStore.CreateQuestionAnswer(userID, payload.CapsuleID, payload.Prompt, payload.Answer)
 	if err != nil {
 		utils.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
-	utils.WriteJSON(w, http.StatusOK, map[string]uint{"songID": songID})
+	utils.WriteJSON(w, http.StatusOK, map[string]uint{"questionAnswerId": questionAnswerID})
+}
+
+func (handler *Handler) handleDeleteQuestionAnswer(w http.ResponseWriter, r *http.Request) {
+	// get json payload
+	var payload types.DeleteQuestionAnswerPayload
+	err := utils.ParseJSON(r, &payload)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	// validate payload
+	if err := utils.Validate.Struct(payload); err != nil {
+		errors := err.(validator.ValidationErrors)
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("invalid payload %v", errors))
+		return
+	}
+
+	userID := auth.GetUserIdFromContext(r.Context())
+
+	err = handler.questionAnswerStore.DeleteQuestionAnswer(userID, payload.CapsuleID, payload.QuestionAnswerID)
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+	utils.WriteJSON(w, http.StatusOK, nil)
 }

@@ -2,6 +2,10 @@ package types
 
 import "time"
 
+// ====================================================================
+// User
+// ====================================================================
+
 type User struct {
 	ID        uint      `json:"id"`
 	FirstName string    `json:"firstName"`
@@ -28,6 +32,10 @@ type RegisterUserPayload struct {
 	Email     string `json:"email" validate:"required,email"`
 	Password  string `json:"password" validate:"required,min=6,max=130"`
 }
+
+// ====================================================================
+// Capsule
+// ====================================================================
 
 type Capsule struct {
 	ID               uint       `json:"id"`
@@ -71,6 +79,10 @@ type DeleteCapsulePayload struct {
 	CapsuleID uint `json:"capsuleId" validate:"required"`
 }
 
+// ====================================================================
+// Song
+// ====================================================================
+
 type Song struct {
 	ID          uint      `json:"id"`
 	UserID      uint      `json:"userId"`
@@ -85,7 +97,7 @@ type Song struct {
 type SongStore interface {
 	GetSongs(capsuleID uint) ([]Song, error)
 	CreateSong(userID uint, capsuleID uint, spotifyID string, name string, artistName string, albumArtURL string) (uint, error)
-	DeleteSong(userID uint, capsuleID uint, songID string) error
+	DeleteSong(userID uint, capsuleID uint, songID uint) error
 }
 
 type CreateSongPayload struct {
@@ -97,6 +109,36 @@ type CreateSongPayload struct {
 }
 
 type DeleteSongPayload struct {
+	CapsuleID uint `json:"capsuleId" validate:"required"`
+	SongID    uint `json:"songId" validate:"required"`
+}
+
+// ====================================================================
+// QuestionAnswer
+// ====================================================================
+
+type QuestionAnswer struct {
+	ID        uint      `json:"id"`
+	UserID    uint      `json:"userId"`
+	CapsuleID uint      `json:"capsuleId"`
+	Prompt    string    `json:"prompt"`
+	Answer    string    `json:"answer"`
+	CreatedAt time.Time `json:"createdAt"`
+}
+
+type QuestionAnswerStore interface {
+	GetQuestionAnswers(userID uint, capsuleID uint) ([]QuestionAnswer, error)
+	CreateQuestionAnswer(userID, capsuleID uint, prompt string, answer string) (uint, error)
+	DeleteQuestionAnswer(userID uint, capsuleID uint, questionAnswerID uint) error
+}
+
+type CreateQuestionAnswerPayload struct {
 	CapsuleID uint   `json:"capsuleId" validate:"required"`
-	SongID    string `json:"songId" validate:"required"`
+	Prompt    string `json:"prompt" validate:"required,max=255"`
+	Answer    string `json:"answer" validate:"required,max=1000"`
+}
+
+type DeleteQuestionAnswerPayload struct {
+	CapsuleID        uint `json:"capsuleId" validate:"required"`
+	QuestionAnswerID uint `json:"questionAnswerId" validate:"required"`
 }

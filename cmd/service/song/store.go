@@ -85,7 +85,7 @@ func (songStore *SongStore) CreateSong(userID uint, capsuleID uint, spotifyID st
 	return uint(id), nil
 }
 
-func (songStore *SongStore) DeleteSong(userID uint, capsuleID uint, spotifyID string) error {
-	_, err := songStore.db.Exec("DELETE FROM songs WHERE userId = ? AND capsuleId = ? AND spotifyId = ?", userID, capsuleID, spotifyID)
+func (songStore *SongStore) DeleteSong(userID uint, capsuleID uint, songID uint) error {
+	_, err := songStore.db.Exec("DELETE FROM songs WHERE id = ? AND userId = ? AND capsuleId = ?", songID, userID, capsuleID)
 	return err
 }
