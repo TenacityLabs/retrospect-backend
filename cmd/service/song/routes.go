@@ -27,6 +27,7 @@ func NewHandler(capsuleStore types.CapsuleStore, userStore types.UserStore, song
 
 func (handler *Handler) RegisterRoutes(router *mux.Router) {
 	router.HandleFunc("/songs/create", auth.WithJWTAuth(handler.handleCreateSong, handler.userStore)).Methods(http.MethodPost)
+	router.HandleFunc("/songs/delete", auth.WithJWTAuth(handler.handleDeleteSong, handler.userStore)).Methods(http.MethodPost)
 }
 
 func (handler *Handler) handleCreateSong(w http.ResponseWriter, r *http.Request) {
@@ -60,4 +61,30 @@ func (handler *Handler) handleCreateSong(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	utils.WriteJSON(w, http.StatusOK, map[string]uint{"songID": songID})
+}
+
+func (handler *Handler) handleDeleteSong(w http.ResponseWriter, r *http.Request) {
+	// get json payload
+	var payload types.DeleteSongPayload
+	err := utils.ParseJSON(r, &payload)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	// validate payload
+	if err := utils.Validate.Struct(payload); err != nil {
+		errors := err.(validator.ValidationErrors)
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("invalid payload %v", errors))
+		return
+	}
+
+	userID := auth.GetUserIdFromContext(r.Context())
+
+	err = handler.songStore.DeleteSong(userID, payload.CapsuleID, payload.SongID)
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+	utils.WriteJSON(w, http.StatusOK, nil)
 }

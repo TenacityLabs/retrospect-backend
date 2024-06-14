@@ -80,6 +80,7 @@ type Song struct {
 type SongStore interface {
 	GetSongs(capsuleID uint) ([]Song, error)
 	CreateSong(userID uint, capsuleID uint, spotifyID string, name string, artistName string, albumArtURL string) (uint, error)
+	DeleteSong(userID uint, capsuleID uint, songID string) error
 }
 
 type CreateSongPayload struct {
@@ -88,4 +89,9 @@ type CreateSongPayload struct {
 	Name        string `json:"name" validate:"required"`
 	ArtistName  string `json:"artistName" validate:"required"`
 	AlbumArtURL string `json:"albumArtURL"`
+}
+
+type DeleteSongPayload struct {
+	CapsuleID uint   `json:"capsuleId" validate:"required"`
+	SongID    string `json:"songId" validate:"required"`
 }

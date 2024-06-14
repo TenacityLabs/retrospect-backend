@@ -1,0 +1,14 @@
+CREATE TABLE IF NOT EXISTS questionAnswers (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `userId` INT UNSIGNED NOT NULL,
+  `capsuleId` INT UNSIGNED NOT NULL,
+
+  `prompt` VARCHAR(255) NOT NULL,
+  `answer` VARCHAR(1000) NOT NULL,
+
+  `createdAt` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+  PRIMARY KEY (`id`),
+  FOREIGN KEY (`userId`) REFERENCES users(`id`),
+  FOREIGN KEY (`capsuleId`) REFERENCES capsules(`id`)
+);
