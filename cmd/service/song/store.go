@@ -28,6 +28,7 @@ func scanRowIntoSong(row *sql.Rows) (*types.Song, error) {
 		&song.Name,
 		&song.ArtistName,
 		&song.AlbumArtURL,
+		&song.CreatedAt,
 	)
 	if err != nil {
 		return nil, err
@@ -56,7 +57,7 @@ func (songStore *SongStore) GetSongs(capsuleID uint) ([]types.Song, error) {
 
 func (songStore *SongStore) CreateSong(userID uint, capsuleID uint, spotifyID string, name string, artistName string, albumArtURL string) (uint, error) {
 	// check if song already exists in capsule
-	rows, err := songStore.db.Query("SELECT * FROM songs WHERE capsuleId = ? AND userId", capsuleID, userID)
+	rows, err := songStore.db.Query("SELECT * FROM songs WHERE capsuleId = ? AND userId = ?", capsuleID, userID)
 	if err != nil {
 		return 0, err
 	}

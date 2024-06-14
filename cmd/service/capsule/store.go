@@ -85,28 +85,28 @@ func (capsuleStore *CapsuleStore) GetCapsules(userId uint) ([]types.Capsule, err
 	return capsules, nil
 }
 
-func (capsuleStore *CapsuleStore) GetCapsuleById(userId uint, capsuleId uint) (*types.Capsule, error) {
+func (capsuleStore *CapsuleStore) GetCapsuleById(userId uint, capsuleId uint) (types.Capsule, error) {
+	capsule := new(types.Capsule)
 	rows, err := capsuleStore.db.Query("SELECT * FROM capsules WHERE id = ?", capsuleId)
 	if err != nil {
-		return nil, err
+		return *capsule, err
 	}
 
-	capsule := new(types.Capsule)
 	for rows.Next() {
 		capsule, err = scanRowIntoCapsule(rows)
 		if err != nil {
-			return nil, err
+			return *capsule, err
 		}
 	}
 
 	if capsule.ID != capsuleId {
-		return nil, fmt.Errorf("capsule not found")
+		return *capsule, fmt.Errorf("capsule not found")
 	}
 	if capsule.CapsuleOwnerID != userId && capsule.CapsuleMember1ID != userId && capsule.CapsuleMember2ID != userId && capsule.CapsuleMember3ID != userId {
-		return nil, fmt.Errorf("user is not authorized to view this capsule")
+		return *capsule, fmt.Errorf("user is not authorized to view this capsule")
 	}
 
-	return capsule, nil
+	return *capsule, nil
 }
 
 func (capsuleStore *CapsuleStore) GenerateCapsuleCode(length int) string {

@@ -3,6 +3,7 @@ package capsule
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/TenacityLabs/time-capsule-backend/cmd/service/auth"
 	"github.com/TenacityLabs/time-capsule-backend/types"
@@ -27,6 +28,7 @@ func NewHandler(capsuleStore types.CapsuleStore, userStore types.UserStore, song
 
 func (handler *Handler) RegisterRoutes(router *mux.Router) {
 	router.HandleFunc("/capsules", auth.WithJWTAuth(handler.handleGetCapsules, handler.userStore)).Methods(http.MethodGet)
+	router.HandleFunc("/capsules/get-by-id/{capsuleId}", auth.WithJWTAuth(handler.handleGetCapsuleById, handler.userStore)).Methods(http.MethodGet)
 	router.HandleFunc("/capsules/create", auth.WithJWTAuth(handler.handleCreateCapsule, handler.userStore)).Methods(http.MethodPost)
 	router.HandleFunc("/capsules/join", auth.WithJWTAuth(handler.handleJoinCapsule, handler.userStore)).Methods(http.MethodPost)
 }
@@ -41,6 +43,38 @@ func (handler *Handler) handleGetCapsules(w http.ResponseWriter, r *http.Request
 	}
 
 	utils.WriteJSON(w, http.StatusOK, capsules)
+}
+
+func (handler *Handler) handleGetCapsuleById(w http.ResponseWriter, r *http.Request) {
+	userID := auth.GetUserIdFromContext(r.Context())
+	vars := mux.Vars(r)
+	capsuleIdStr, ok := vars["capsuleId"]
+	if !ok {
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("capsuleId not provided"))
+		return
+	}
+	capsuleId, err := strconv.Atoi(capsuleIdStr)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("invalid capsuleId"))
+		return
+	}
+
+	capsule, err := handler.capsuleStore.GetCapsuleById(userID, uint(capsuleId))
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	songs, err := handler.songStore.GetSongs(uint(capsule.ID))
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusOK, types.GetCapsuleByIdResponse{
+		Capsule: capsule,
+		Songs:   songs,
+	})
 }
 
 func (handler *Handler) handleCreateCapsule(w http.ResponseWriter, r *http.Request) {

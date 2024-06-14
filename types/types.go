@@ -47,9 +47,14 @@ type Capsule struct {
 
 type CapsuleStore interface {
 	GetCapsules(userId uint) ([]Capsule, error)
-	GetCapsuleById(userId uint, capsuleId uint) (*Capsule, error)
+	GetCapsuleById(userId uint, capsuleId uint) (Capsule, error)
 	CreateCapsule(userId uint, vessel string, public bool) (uint, error)
 	JoinCapsule(userId uint, code string) error
+}
+
+type GetCapsuleByIdResponse struct {
+	Capsule Capsule `json:"capsule"`
+	Songs   []Song  `json:"songs"`
 }
 
 type CreateCapsulePayload struct {
