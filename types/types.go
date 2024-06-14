@@ -50,6 +50,7 @@ type CapsuleStore interface {
 	GetCapsuleById(userId uint, capsuleId uint) (Capsule, error)
 	CreateCapsule(userId uint, vessel string, public bool) (uint, error)
 	JoinCapsule(userId uint, code string) error
+	DeleteCapsule(userId uint, capsuleId uint) error
 }
 
 type GetCapsuleByIdResponse struct {
@@ -64,6 +65,10 @@ type CreateCapsulePayload struct {
 
 type JoinCapsulePayload struct {
 	Code string `json:"code" validate:"required,min=10,max=10"`
+}
+
+type DeleteCapsulePayload struct {
+	CapsuleID uint `json:"capsuleId" validate:"required"`
 }
 
 type Song struct {

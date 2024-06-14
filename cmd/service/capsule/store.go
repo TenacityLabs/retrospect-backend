@@ -205,3 +205,14 @@ func (capsuleStore *CapsuleStore) JoinCapsule(userId uint, code string) error {
 
 	return err
 }
+
+func (capsuleStore *CapsuleStore) DeleteCapsule(userId uint, capsuleId uint) error {
+	// TODO: delete all songs, questionAnswers, files, etc.
+	_, err := capsuleStore.db.Exec("DELETE FROM songs WHERE capsuleId = ?", capsuleId)
+	if err != nil {
+		return err
+	}
+
+	_, err = capsuleStore.db.Exec("DELETE FROM capsules WHERE id = ? AND capsuleOwnerId = ?", capsuleId, userId)
+	return err
+}
