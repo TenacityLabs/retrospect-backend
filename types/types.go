@@ -39,6 +39,7 @@ type Capsule struct {
 	CapsuleMember2ID uint       `json:"capsuleMember2Id"`
 	CapsuleMember3ID uint       `json:"capsuleMember3Id"`
 	Vessel           string     `json:"vessel"`
+	Name             string     `json:"name"`
 	DateToOpen       *time.Time `json:"dateToOpen"`
 	EmailSent        bool       `json:"emailSent"`
 	Sealed           bool       `json:"sealed"`
@@ -46,13 +47,18 @@ type Capsule struct {
 
 type CapsuleStore interface {
 	GetCapsules(userId uint) ([]Capsule, error)
-	GetCapsuleById(userId uint, capsuleID uint) (*Capsule, error)
+	GetCapsuleById(userId uint, capsuleId uint) (*Capsule, error)
 	CreateCapsule(userId uint, vessel string, public bool) (uint, error)
+	JoinCapsule(userId uint, code string) error
 }
 
 type CreateCapsulePayload struct {
-	Vessel string `json:"vessel" valiedate:"required,min=1,max=32"`
+	Vessel string `json:"vessel" validate:"required,min=1,max=32"`
 	Public bool   `json:"public"`
+}
+
+type JoinCapsulePayload struct {
+	Code string `json:"code" validate:"required,min=10,max=10"`
 }
 
 type Song struct {

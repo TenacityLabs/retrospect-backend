@@ -36,6 +36,7 @@ func scanRowIntoCapsule(row *sql.Rows) (*types.Capsule, error) {
 		&capsuleMember2Id,
 		&capsuleMember3Id,
 		&capsule.Vessel,
+		&capsule.Name,
 		&capsule.DateToOpen,
 		&capsule.EmailSent,
 		&capsule.Sealed,
@@ -122,14 +123,14 @@ func (capsuleStore *CapsuleStore) GenerateCapsuleCode(length int) string {
 
 func (capsuleStore *CapsuleStore) CreateCapsule(userId uint, vessel string, public bool) (uint, error) {
 	// generate unique capulse code
-	var capsuleCode string
+	var code string
 	generateCodeAttempts := 0
 	const codeLength = 10
 
 	for {
-		capsuleCode = capsuleStore.GenerateCapsuleCode(codeLength)
+		code = capsuleStore.GenerateCapsuleCode(codeLength)
 		var count int
-		err := capsuleStore.db.QueryRow("SELECT COUNT(*) FROM capsules WHERE code = ?", capsuleCode).Scan(&count)
+		err := capsuleStore.db.QueryRow("SELECT COUNT(*) FROM capsules WHERE code = ?", code).Scan(&count)
 		if err != nil {
 			return 0, err
 		}
@@ -155,7 +156,7 @@ func (capsuleStore *CapsuleStore) CreateCapsule(userId uint, vessel string, publ
 		return 0, fmt.Errorf("invalid vessel")
 	}
 
-	res, err := capsuleStore.db.Exec("INSERT INTO capsules (code, capsuleOwnerId, vessel, public) VALUES (?, ?, ?, ?)", capsuleCode, userId, vessel, public)
+	res, err := capsuleStore.db.Exec("INSERT INTO capsules (code, capsuleOwnerId, vessel, name, public) VALUES (?, ?, ?, 'My Time Capsule', ?)", code, userId, vessel, public)
 	if err != nil {
 		return 0, err
 	}
@@ -166,4 +167,41 @@ func (capsuleStore *CapsuleStore) CreateCapsule(userId uint, vessel string, publ
 	}
 
 	return uint(id), nil
+}
+
+func (capsuleStore *CapsuleStore) JoinCapsule(userId uint, code string) error {
+	// get the capsule
+	rows, err := capsuleStore.db.Query("SELECT * FROM capsules WHERE code = ?", code)
+	if err != nil {
+		return err
+	}
+
+	capsule := new(types.Capsule)
+	for rows.Next() {
+		capsule, err = scanRowIntoCapsule(rows)
+		if err != nil {
+			return err
+		}
+	}
+	if capsule.Code != code {
+		return fmt.Errorf("capsule not found")
+	}
+
+	// check if the user is already a member of the capsule
+	if capsule.CapsuleOwnerID == userId || capsule.CapsuleMember1ID == userId || capsule.CapsuleMember2ID == userId || capsule.CapsuleMember3ID == userId {
+		return fmt.Errorf("you are already a member of the capsule")
+	}
+
+	// check for the first available member slot
+	if capsule.CapsuleMember1ID == 0 {
+		_, err = capsuleStore.db.Exec("UPDATE capsules SET capsuleMember1Id = ? WHERE id = ?", userId, capsule.ID)
+	} else if capsule.CapsuleMember2ID == 0 {
+		_, err = capsuleStore.db.Exec("UPDATE capsules SET capsuleMember2Id = ? WHERE id = ?", userId, capsule.ID)
+	} else if capsule.CapsuleMember3ID == 0 {
+		_, err = capsuleStore.db.Exec("UPDATE capsules SET capsuleMember3Id = ? WHERE id = ?", userId, capsule.ID)
+	} else {
+		return fmt.Errorf("capsule already has the maximum number of members")
+	}
+
+	return err
 }

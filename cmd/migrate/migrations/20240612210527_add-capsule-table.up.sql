@@ -10,9 +10,9 @@ CREATE TABLE IF NOT EXISTS capsules (
   `capsuleMember2Id` INT UNSIGNED,
   `capsuleMember3Id` INT UNSIGNED,
 
-  -- FIXME: input actual vessel names later
   `vessel` ENUM('box', 'suitcase', 'guitar case', 'bottle', 'shoe', 'garbage') NOT NULL,
 
+  `name` VARCHAR(255) NOT NULL,
   `dateToOpen` TIMESTAMP, -- date to open refers to the date when the time capsule can be opened
   `emailSent` BOOLEAN NOT NULL DEFAULT FALSE, -- whether or not an email has been sent to the capsule owner
   `sealed` BOOLEAN NOT NULL DEFAULT FALSE, -- sealed refers to whether the time capsule has been sealed (and can't be opened until the specified date)
