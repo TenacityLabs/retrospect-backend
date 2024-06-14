@@ -54,3 +54,19 @@ type CreateCapsulePayload struct {
 	Vessel string `json:"vessel" valiedate:"required,min=1,max=32"`
 	Public bool   `json:"public" validate:"required"`
 }
+
+type Song struct {
+	ID          uint      `json:"id"`
+	CapsuleID   uint      `json:"capsuleId"`
+	UserID      uint      `json:"userId"`
+	SpotifyID   string    `json:"spotifyId"`
+	Name        string    `json:"name"`
+	ArtistName  string    `json:"artistName"`
+	AlbumArtURL string    `json:"albumArtURL"`
+	CreatedAt   time.Time `json:"createdAt"`
+}
+
+type SongStore interface {
+	GetSongs(capsuleID uint) ([]Song, error)
+	CreateSong(capsuleID uint, userID uint, spotifyID string, name string, artistName string, albumArtURL string) (uint, error)
+}

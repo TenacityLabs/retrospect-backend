@@ -14,12 +14,14 @@ import (
 type Handler struct {
 	capsuleStore types.CapsuleStore
 	userStore    types.UserStore
+	songStore    types.SongStore
 }
 
-func NewHandler(capsuleStore types.CapsuleStore, userStore types.UserStore) *Handler {
+func NewHandler(capsuleStore types.CapsuleStore, userStore types.UserStore, songStore types.SongStore) *Handler {
 	return &Handler{
 		capsuleStore: capsuleStore,
 		userStore:    userStore,
+		songStore:    songStore,
 	}
 }
 

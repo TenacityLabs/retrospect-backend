@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/TenacityLabs/time-capsule-backend/cmd/service/capsule"
+	"github.com/TenacityLabs/time-capsule-backend/cmd/service/song"
 	"github.com/TenacityLabs/time-capsule-backend/cmd/service/user"
 	"github.com/gorilla/mux"
 )
@@ -27,11 +28,12 @@ func (server *APIServer) Run() error {
 	subrouter := router.PathPrefix("/api/v1").Subrouter()
 
 	userStore := user.NewUserStore(server.db)
+	capsuleStore := capsule.NewCapsuleStore(server.db)
+	songStore := song.NewSongStore(server.db)
+
 	userHandler := user.NewHandler(userStore)
 	userHandler.RegisterRoutes(subrouter)
-
-	capsuleStore := capsule.NewCapsuleStore(server.db)
-	capsuleHandler := capsule.NewHandler(capsuleStore, userStore)
+	capsuleHandler := capsule.NewHandler(capsuleStore, userStore, songStore)
 	capsuleHandler.RegisterRoutes(subrouter)
 
 	log.Println("Listening on", server.addr)
