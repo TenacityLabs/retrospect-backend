@@ -2,6 +2,7 @@ package song
 
 import (
 	"database/sql"
+	"fmt"
 
 	"github.com/TenacityLabs/time-capsule-backend/types"
 )
@@ -54,6 +55,22 @@ func (songStore *SongStore) GetSongs(capsuleID uint) ([]types.Song, error) {
 }
 
 func (songStore *SongStore) CreateSong(userID uint, capsuleID uint, spotifyID string, name string, artistName string, albumArtURL string) (uint, error) {
+	// check if song already exists in capsule
+	rows, err := songStore.db.Query("SELECT * FROM songs WHERE capsuleId = ? AND userId", capsuleID, userID)
+	if err != nil {
+		return 0, err
+	}
+	song := new(types.Song)
+	for rows.Next() {
+		song, err = scanRowIntoSong(rows)
+		if err != nil {
+			return 0, err
+		}
+	}
+	if song.SpotifyID == spotifyID {
+		return 0, fmt.Errorf("you already added this song to the capsule")
+	}
+
 	res, err := songStore.db.Exec("INSERT INTO songs (userId, capsuleId, spotifyId, name, artistName, albumArtURL) VALUES (?, ?, ?, ?, ?, ?)", userID, capsuleID, spotifyID, name, artistName, albumArtURL)
 	if err != nil {
 		return 0, err

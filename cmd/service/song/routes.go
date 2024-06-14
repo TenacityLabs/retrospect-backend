@@ -47,6 +47,13 @@ func (handler *Handler) handleCreateSong(w http.ResponseWriter, r *http.Request)
 
 	userID := auth.GetUserIdFromContext(r.Context())
 
+	// check if user is member of capsule
+	_, err = handler.capsuleStore.GetCapsuleById(userID, payload.CapsuleID)
+	if err != nil {
+		utils.WriteError(w, http.StatusForbidden, fmt.Errorf("could not find capsule with id %d", payload.CapsuleID))
+		return
+	}
+
 	songID, err := handler.songStore.CreateSong(userID, payload.CapsuleID, payload.SpotifyID, payload.Name, payload.ArtistName, payload.AlbumArtURL)
 	if err != nil {
 		utils.WriteError(w, http.StatusInternalServerError, err)

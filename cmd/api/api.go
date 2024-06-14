@@ -35,6 +35,8 @@ func (server *APIServer) Run() error {
 	userHandler.RegisterRoutes(subrouter)
 	capsuleHandler := capsule.NewHandler(capsuleStore, userStore, songStore)
 	capsuleHandler.RegisterRoutes(subrouter)
+	songHandler := song.NewHandler(capsuleStore, userStore, songStore)
+	songHandler.RegisterRoutes(subrouter)
 
 	log.Println("Listening on", server.addr)
 	return http.ListenAndServe(server.addr, router)
