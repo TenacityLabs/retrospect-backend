@@ -24,15 +24,17 @@ func NewCapsuleStore(db *sql.DB) *CapsuleStore {
 func scanRowIntoCapsule(row *sql.Rows) (*types.Capsule, error) {
 	capsule := new(types.Capsule)
 
+	var capsuleMember1Id, capsuleMember2Id, capsuleMember3Id sql.NullInt64
+
 	err := row.Scan(
 		&capsule.ID,
 		&capsule.Code,
 		&capsule.CreatedAt,
 		&capsule.Public,
 		&capsule.CapsuleOwnerID,
-		&capsule.CapsuleMember1ID,
-		&capsule.CapsuleMember2ID,
-		&capsule.CapsuleMember3ID,
+		&capsuleMember1Id,
+		&capsuleMember2Id,
+		&capsuleMember3Id,
 		&capsule.Vessel,
 		&capsule.DateToOpen,
 		&capsule.EmailSent,
@@ -42,11 +44,30 @@ func scanRowIntoCapsule(row *sql.Rows) (*types.Capsule, error) {
 		return nil, err
 	}
 
+	// Set CapsuleMemberID fields to 0 if they are NULL
+	if capsuleMember1Id.Valid {
+		capsule.CapsuleMember1ID = uint(capsuleMember1Id.Int64)
+	} else {
+		capsule.CapsuleMember1ID = 0
+	}
+
+	if capsuleMember2Id.Valid {
+		capsule.CapsuleMember2ID = uint(capsuleMember2Id.Int64)
+	} else {
+		capsule.CapsuleMember2ID = 0
+	}
+
+	if capsuleMember3Id.Valid {
+		capsule.CapsuleMember3ID = uint(capsuleMember3Id.Int64)
+	} else {
+		capsule.CapsuleMember3ID = 0
+	}
+
 	return capsule, nil
 }
 
-func (capsuleStore *CapsuleStore) GetCapsules(capsuleOwnerId uint) ([]types.Capsule, error) {
-	rows, err := capsuleStore.db.Query("SELECT * FROM capsules WHERE capsuleOwnerId = ?", capsuleOwnerId)
+func (capsuleStore *CapsuleStore) GetCapsules(userId uint) ([]types.Capsule, error) {
+	rows, err := capsuleStore.db.Query("SELECT * FROM capsules WHERE capsuleOwnerId = ? OR capsuleMember1Id = ? OR capsuleMember2Id = ? OR capsuleMember3Id = ?", userId, userId, userId, userId)
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +84,7 @@ func (capsuleStore *CapsuleStore) GetCapsules(capsuleOwnerId uint) ([]types.Caps
 	return capsules, nil
 }
 
-func (capsuleStore *CapsuleStore) GetCapsuleById(capsuleOwnerId uint, capsuleId uint) (*types.Capsule, error) {
+func (capsuleStore *CapsuleStore) GetCapsuleById(userId uint, capsuleId uint) (*types.Capsule, error) {
 	rows, err := capsuleStore.db.Query("SELECT * FROM capsules WHERE id = ?", capsuleId)
 	if err != nil {
 		return nil, err
@@ -80,16 +101,18 @@ func (capsuleStore *CapsuleStore) GetCapsuleById(capsuleOwnerId uint, capsuleId 
 	if capsule.ID != capsuleId {
 		return nil, fmt.Errorf("capsule not found")
 	}
+	if capsule.CapsuleOwnerID != userId && capsule.CapsuleMember1ID != userId && capsule.CapsuleMember2ID != userId && capsule.CapsuleMember3ID != userId {
+		return nil, fmt.Errorf("user is not authorized to view this capsule")
+	}
 
 	return capsule, nil
 }
 
-const charset = "abcdefghijklmnopqrstuvwxyz" +
-	"ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
-	"0123456789"
-const codeLength = 10
-
 func (capsuleStore *CapsuleStore) GenerateCapsuleCode(length int) string {
+	const charset = "abcdefghijklmnopqrstuvwxyz" +
+		"ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
+		"0123456789"
+
 	b := make([]byte, length)
 	for i := range b {
 		b[i] = charset[capsuleStore.rng.Intn(len(charset))]
@@ -97,10 +120,12 @@ func (capsuleStore *CapsuleStore) GenerateCapsuleCode(length int) string {
 	return string(b)
 }
 
-func (capsuleStore *CapsuleStore) CreateCapsule(capsuleOwnerID uint, vessel string, public bool) (uint, error) {
+func (capsuleStore *CapsuleStore) CreateCapsule(userId uint, vessel string, public bool) (uint, error) {
 	// generate unique capulse code
 	var capsuleCode string
 	generateCodeAttempts := 0
+	const codeLength = 10
+
 	for {
 		capsuleCode = capsuleStore.GenerateCapsuleCode(codeLength)
 		var count int
@@ -130,7 +155,7 @@ func (capsuleStore *CapsuleStore) CreateCapsule(capsuleOwnerID uint, vessel stri
 		return 0, fmt.Errorf("invalid vessel")
 	}
 
-	res, err := capsuleStore.db.Exec("INSERT INTO capsules (code, capsuleOwnerId, vessel, public) VALUES (?, ?, ?, ?)", capsuleCode, capsuleOwnerID, vessel, public)
+	res, err := capsuleStore.db.Exec("INSERT INTO capsules (code, capsuleOwnerId, vessel, public) VALUES (?, ?, ?, ?)", capsuleCode, userId, vessel, public)
 	if err != nil {
 		return 0, err
 	}

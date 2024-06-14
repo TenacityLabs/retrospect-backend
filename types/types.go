@@ -35,30 +35,30 @@ type Capsule struct {
 	CreatedAt        time.Time  `json:"createdAt"`
 	Public           bool       `json:"public"`
 	CapsuleOwnerID   uint       `json:"capsuleOwnerId"`
-	CapsuleMember1ID *uint      `json:"capsuleMember1Id"`
-	CapsuleMember2ID *uint      `json:"capsuleMember2Id"`
-	CapsuleMember3ID *uint      `json:"capsuleMember3Id"`
-	Vessel           *string    `json:"vessel"`
+	CapsuleMember1ID uint       `json:"capsuleMember1Id"`
+	CapsuleMember2ID uint       `json:"capsuleMember2Id"`
+	CapsuleMember3ID uint       `json:"capsuleMember3Id"`
+	Vessel           string     `json:"vessel"`
 	DateToOpen       *time.Time `json:"dateToOpen"`
 	EmailSent        bool       `json:"emailSent"`
 	Sealed           bool       `json:"sealed"`
 }
 
 type CapsuleStore interface {
-	GetCapsules(capsuleOwnerID uint) ([]Capsule, error)
-	GetCapsuleById(capsuleOwnerID uint, capsuleID uint) (*Capsule, error)
-	CreateCapsule(capsuleOwnerID uint, vessel string, public bool) (uint, error)
+	GetCapsules(userId uint) ([]Capsule, error)
+	GetCapsuleById(userId uint, capsuleID uint) (*Capsule, error)
+	CreateCapsule(userId uint, vessel string, public bool) (uint, error)
 }
 
 type CreateCapsulePayload struct {
 	Vessel string `json:"vessel" valiedate:"required,min=1,max=32"`
-	Public bool   `json:"public" validate:"required"`
+	Public bool   `json:"public"`
 }
 
 type Song struct {
 	ID          uint      `json:"id"`
-	CapsuleID   uint      `json:"capsuleId"`
 	UserID      uint      `json:"userId"`
+	CapsuleID   uint      `json:"capsuleId"`
 	SpotifyID   string    `json:"spotifyId"`
 	Name        string    `json:"name"`
 	ArtistName  string    `json:"artistName"`
@@ -68,5 +68,13 @@ type Song struct {
 
 type SongStore interface {
 	GetSongs(capsuleID uint) ([]Song, error)
-	CreateSong(capsuleID uint, userID uint, spotifyID string, name string, artistName string, albumArtURL string) (uint, error)
+	CreateSong(userID uint, capsuleID uint, spotifyID string, name string, artistName string, albumArtURL string) (uint, error)
+}
+
+type CreateSongPayload struct {
+	CapsuleID   uint   `json:"capsuleId" validate:"required"`
+	SpotifyID   string `json:"spotifyId" validate:"required"`
+	Name        string `json:"name" validate:"required"`
+	ArtistName  string `json:"artistName" validate:"required"`
+	AlbumArtURL string `json:"albumArtURL"`
 }

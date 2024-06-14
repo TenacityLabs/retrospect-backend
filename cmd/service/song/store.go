@@ -21,8 +21,8 @@ func scanRowIntoSong(row *sql.Rows) (*types.Song, error) {
 
 	err := row.Scan(
 		&song.ID,
-		&song.CapsuleID,
 		&song.UserID,
+		&song.CapsuleID,
 		&song.SpotifyID,
 		&song.Name,
 		&song.ArtistName,
@@ -53,8 +53,8 @@ func (songStore *SongStore) GetSongs(capsuleID uint) ([]types.Song, error) {
 	return songs, nil
 }
 
-func (songStore *SongStore) CreateSong(capsuleID uint, userID uint, spotifyID string, name string, artistName string, albumArtURL string) (uint, error) {
-	res, err := songStore.db.Exec("INSERT INTO songs (capsuleId, userId, spotifyId, name, artistName, albumArtURL) VALUES (?, ?, ?, ?, ?, ?)", capsuleID, userID, spotifyID, name, artistName, albumArtURL)
+func (songStore *SongStore) CreateSong(userID uint, capsuleID uint, spotifyID string, name string, artistName string, albumArtURL string) (uint, error) {
+	res, err := songStore.db.Exec("INSERT INTO songs (userId, capsuleId, spotifyId, name, artistName, albumArtURL) VALUES (?, ?, ?, ?, ?, ?)", userID, capsuleID, spotifyID, name, artistName, albumArtURL)
 	if err != nil {
 		return 0, err
 	}
