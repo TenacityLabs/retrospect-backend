@@ -17,6 +17,7 @@ type Handler struct {
 	userStore           types.UserStore
 	songStore           types.SongStore
 	questionAnswerStore types.QuestionAnswerStore
+	writingStore        types.WritingStore
 }
 
 func NewHandler(
@@ -24,12 +25,14 @@ func NewHandler(
 	userStore types.UserStore,
 	songStore types.SongStore,
 	questionAnswerStore types.QuestionAnswerStore,
+	writingStore types.WritingStore,
 ) *Handler {
 	return &Handler{
 		capsuleStore:        capsuleStore,
 		userStore:           userStore,
 		songStore:           songStore,
 		questionAnswerStore: questionAnswerStore,
+		writingStore:        writingStore,
 	}
 }
 
@@ -83,11 +86,17 @@ func (handler *Handler) handleGetCapsuleById(w http.ResponseWriter, r *http.Requ
 		utils.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
+	writings, err := handler.writingStore.GetWritings(uint(capsule.ID))
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
 
 	utils.WriteJSON(w, http.StatusOK, types.GetCapsuleByIdResponse{
 		Capsule:         capsule,
 		Songs:           songs,
 		QuestionAnswers: questionAnswers,
+		Writings:        writings,
 	})
 }
 

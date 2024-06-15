@@ -65,6 +65,7 @@ type GetCapsuleByIdResponse struct {
 	Capsule         Capsule          `json:"capsule"`
 	Songs           []Song           `json:"songs"`
 	QuestionAnswers []QuestionAnswer `json:"questionAnswers"`
+	Writings        []Writing        `json:"writings"`
 }
 
 type CreateCapsulePayload struct {
@@ -142,4 +143,32 @@ type CreateQuestionAnswerPayload struct {
 type DeleteQuestionAnswerPayload struct {
 	CapsuleID        uint `json:"capsuleId" validate:"required"`
 	QuestionAnswerID uint `json:"questionAnswerId" validate:"required"`
+}
+
+// ====================================================================
+// Writing
+// ====================================================================
+
+type Writing struct {
+	ID        uint      `json:"id"`
+	UserID    uint      `json:"userId"`
+	CapsuleID uint      `json:"capsuleId"`
+	Writing   string    `json:"writing"`
+	CreatedAt time.Time `json:"createdAt"`
+}
+
+type WritingStore interface {
+	GetWritings(capsuleID uint) ([]Writing, error)
+	CreateWriting(userID, capsuleID uint, writing string) (uint, error)
+	DeleteWriting(userID uint, capsuleID uint, writingID uint) error
+}
+
+type CreateWritingPayload struct {
+	CapsuleID uint   `json:"capsuleId" validate:"required"`
+	Writing   string `json:"writing" validate:"required,max=1000"`
+}
+
+type DeleteWritingPayload struct {
+	CapsuleID uint `json:"capsuleId" validate:"required"`
+	WritingID uint `json:"writingId" validate:"required"`
 }
