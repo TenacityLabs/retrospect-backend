@@ -12,6 +12,7 @@ import (
 	"github.com/TenacityLabs/time-capsule-backend/services/user"
 	"github.com/TenacityLabs/time-capsule-backend/services/writing"
 	"github.com/gorilla/mux"
+	"github.com/rs/cors"
 )
 
 type APIServer struct {
@@ -52,6 +53,13 @@ func (server *APIServer) Run() error {
 	writingHandler := writing.NewHandler(capsuleStore, userStore, writingStore)
 	writingHandler.RegisterRoutes(subrouter)
 
+	// TODO: limit origins for prod
+	c := cors.New(cors.Options{
+		AllowedOrigins: []string{"*"},
+		AllowedHeaders: []string{"Authorization"},
+	})
+	handler := c.Handler(router)
+
 	log.Println("Listening on", server.addr)
-	return http.ListenAndServe(server.addr, router)
+	return http.ListenAndServe(server.addr, handler)
 }

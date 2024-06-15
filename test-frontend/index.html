@@ -7,6 +7,7 @@
 <button id="test-ping">Test Ping</button>
 
 <script>
+
   document.getElementById('upload').addEventListener('click', async () => {
     const fileInput = document.getElementById('file');
     const file = fileInput.files[0];
@@ -19,20 +20,23 @@
     const formData = new FormData();
     formData.append('file', file);
 
+    console.log(formData)
     try {
-      const response = await fetch('http://localhost:8080/files/upload', {
+      const response = await fetch('http://localhost:8080/api/v1/files/upload', {
         method: 'POST',
-        body: formData
+        body: formData,
+        headers: {
+          "authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHBpcmVkQXQiOjE3MTg5MTYzNzUsInVzZXJJRCI6IjEifQ.Aceo8I2o-W9n2rrIio1BHUQ2Q1PLMA7udiBkLuHkTB8"
+        },
       });
 
       if (response.ok) {
-        alert("File uploaded successfully!");
+        console.log('File uploaded successfully!')
       } else {
-        alert("Failed to upload file.");
+        console.error('Error:', response);
       }
     } catch (error) {
       console.error('Error uploading file:', error);
-      alert("Error uploading file.");
     }
   });
 
@@ -44,7 +48,12 @@
           "authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHBpcmVkQXQiOjE3MTg5MTYzNzUsInVzZXJJRCI6IjEifQ.Aceo8I2o-W9n2rrIio1BHUQ2Q1PLMA7udiBkLuHkTB8"
         }
       });
-      console.log(response);
+      if (response.ok) {
+        const data = await response.json();
+        console.log(data);
+      } else {
+        console.error('Error:', response.statusText);
+      }
     } catch (error) {
       console.error('Error uploading file:', error);
     }
