@@ -26,8 +26,8 @@ func NewHandler(capsuleStore types.CapsuleStore, userStore types.UserStore, ques
 }
 
 func (handler *Handler) RegisterRoutes(router *mux.Router) {
-	router.HandleFunc("/question-answer/create", auth.WithJWTAuth(handler.handleCreateQuestionAnswer, handler.userStore)).Methods(http.MethodPost)
-	router.HandleFunc("/question-answer/delete", auth.WithJWTAuth(handler.handleDeleteQuestionAnswer, handler.userStore)).Methods(http.MethodPost)
+	router.HandleFunc("/question-answers/create", auth.WithJWTAuth(handler.handleCreateQuestionAnswer, handler.userStore)).Methods(http.MethodPost)
+	router.HandleFunc("/question-answers/delete", auth.WithJWTAuth(handler.handleDeleteQuestionAnswer, handler.userStore)).Methods(http.MethodPost)
 }
 
 func (handler *Handler) handleCreateQuestionAnswer(w http.ResponseWriter, r *http.Request) {

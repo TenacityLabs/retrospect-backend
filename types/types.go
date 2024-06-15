@@ -62,8 +62,9 @@ type CapsuleStore interface {
 }
 
 type GetCapsuleByIdResponse struct {
-	Capsule Capsule `json:"capsule"`
-	Songs   []Song  `json:"songs"`
+	Capsule         Capsule          `json:"capsule"`
+	Songs           []Song           `json:"songs"`
+	QuestionAnswers []QuestionAnswer `json:"questionAnswers"`
 }
 
 type CreateCapsulePayload struct {
@@ -127,7 +128,7 @@ type QuestionAnswer struct {
 }
 
 type QuestionAnswerStore interface {
-	GetQuestionAnswers(userID uint, capsuleID uint) ([]QuestionAnswer, error)
+	GetQuestionAnswers(capsuleID uint) ([]QuestionAnswer, error)
 	CreateQuestionAnswer(userID, capsuleID uint, prompt string, answer string) (uint, error)
 	DeleteQuestionAnswer(userID uint, capsuleID uint, questionAnswerID uint) error
 }

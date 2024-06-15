@@ -34,8 +34,8 @@ func scanRowIntoQuestionAnswer(row *sql.Rows) (*types.QuestionAnswer, error) {
 	return questionAnswer, nil
 }
 
-func (questionAnswerStore *QuestionAnswerStore) GetQuestionAnswers(userID uint, capsuleID uint) ([]types.QuestionAnswer, error) {
-	rows, err := questionAnswerStore.db.Query("SELECT * FROM questionAnswers WHERE userId = ? AND capsuleId = ?", userID, capsuleID)
+func (questionAnswerStore *QuestionAnswerStore) GetQuestionAnswers(capsuleID uint) ([]types.QuestionAnswer, error) {
+	rows, err := questionAnswerStore.db.Query("SELECT * FROM questionAnswers WHERE capsuleId = ?", capsuleID)
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +53,7 @@ func (questionAnswerStore *QuestionAnswerStore) GetQuestionAnswers(userID uint, 
 }
 
 func (questionAnswerStore *QuestionAnswerStore) CreateQuestionAnswer(userID uint, capsuleID uint, prompt string, answer string) (uint, error) {
-	res, err := questionAnswerStore.db.Exec("INSERT INTO questionAnswers (userId, capsuleId, prompt, answer) VALUES (?, ?, ?, ?, ?, ?)", userID, capsuleID, prompt, answer)
+	res, err := questionAnswerStore.db.Exec("INSERT INTO questionAnswers (userId, capsuleId, prompt, answer) VALUES (?, ?, ?, ?)", userID, capsuleID, prompt, answer)
 	if err != nil {
 		return 0, err
 	}
@@ -67,6 +67,6 @@ func (questionAnswerStore *QuestionAnswerStore) CreateQuestionAnswer(userID uint
 }
 
 func (questionAnswerStore *QuestionAnswerStore) DeleteQuestionAnswer(userID uint, capsuleID uint, questionAnswerID uint) error {
-	_, err := questionAnswerStore.db.Exec("DELETE FROM questionAnswers WHERE id = ? AND userId = ? AND capsuleId = ? AND spotifyId = ?", questionAnswerID, userID, capsuleID)
+	_, err := questionAnswerStore.db.Exec("DELETE FROM questionAnswers WHERE id = ? AND userId = ? AND capsuleId = ?", questionAnswerID, userID, capsuleID)
 	return err
 }

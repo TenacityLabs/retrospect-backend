@@ -213,6 +213,11 @@ func (capsuleStore *CapsuleStore) DeleteCapsule(userId uint, capsuleId uint) err
 		return err
 	}
 
+	_, err = capsuleStore.db.Exec("DELETE FROM questionAnswers WHERE capsuleId = ?", capsuleId)
+	if err != nil {
+		return err
+	}
+
 	_, err = capsuleStore.db.Exec("DELETE FROM capsules WHERE id = ? AND capsuleOwnerId = ?", capsuleId, userId)
 	return err
 }
