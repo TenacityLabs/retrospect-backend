@@ -84,3 +84,13 @@ func (userStore *UserStore) CreateUser(user types.User) error {
 	}
 	return nil
 }
+
+// delete user leaves memory leaks (eg. capsules where the owner is deleted)
+// but this feature is only for testing, so it's fine
+func (userStore *UserStore) DeleteUser(userId uint) error {
+	_, err := userStore.db.Exec("DELETE FROM users WHERE id = ?", userId)
+	if err != nil {
+		return err
+	}
+	return nil
+}

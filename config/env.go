@@ -9,6 +9,7 @@ import (
 )
 
 type Config struct {
+	GoEnv                  string
 	PublicHost             string
 	Port                   string
 	DBUser                 string
@@ -26,6 +27,7 @@ func initConfig() Config {
 	godotenv.Load()
 
 	return Config{
+		GoEnv:                  getEnv("GO_ENV", "development"),
 		PublicHost:             getEnv("PUBLIC_HOST", "http://localhost"),
 		Port:                   getEnv("PORT", "8080"),
 		DBUser:                 getEnv("DB_USER", "root"),

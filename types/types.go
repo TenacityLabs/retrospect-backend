@@ -19,6 +19,7 @@ type UserStore interface {
 	GetUserByEmail(email string) (*User, error)
 	GetUserById(userId uint) (*User, error)
 	CreateUser(user User) error
+	DeleteUser(userId uint) error
 }
 
 type LoginUserPayload struct {
