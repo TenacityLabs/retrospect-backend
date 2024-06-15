@@ -1,6 +1,9 @@
 package types
 
-import "time"
+import (
+	"mime/multipart"
+	"time"
+)
 
 // ====================================================================
 // User
@@ -39,12 +42,8 @@ type RegisterUserPayload struct {
 // ====================================================================
 
 type FileStore interface {
-	UploadFile(file []byte, filename string) (string, error)
+	UploadFile(userId uint, file multipart.File) (string, error)
 	// DeleteFile(fileURL string) error
-}
-
-type UploadFilePayload struct {
-	File []byte
 }
 
 // ====================================================================

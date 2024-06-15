@@ -18,6 +18,7 @@ type Config struct {
 	DBName                 string
 	JWTExpirationInSeconds int64
 	JWTSecret              string
+	GCSBucketName          string
 }
 
 // create global variable so that env isn't reinitialized every time it's called
@@ -36,6 +37,7 @@ func initConfig() Config {
 		DBName:                 getEnv("DB_NAME", "time_capsule"),
 		JWTExpirationInSeconds: getEnvAsInt("JWT_EXP", 3600*24*7),
 		JWTSecret:              getEnv("JWT_SECRET", "sneakysneaky"),
+		GCSBucketName:          getEnv("BUCKET_NAME", "retrospect_file_bucket"),
 	}
 }
 
