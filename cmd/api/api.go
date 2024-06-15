@@ -10,6 +10,7 @@ import (
 	"github.com/TenacityLabs/time-capsule-backend/config"
 	"github.com/TenacityLabs/time-capsule-backend/services/capsule"
 	"github.com/TenacityLabs/time-capsule-backend/services/file"
+	"github.com/TenacityLabs/time-capsule-backend/services/photo"
 	"github.com/TenacityLabs/time-capsule-backend/services/questionAnswer"
 	"github.com/TenacityLabs/time-capsule-backend/services/song"
 	"github.com/TenacityLabs/time-capsule-backend/services/user"
@@ -51,6 +52,7 @@ func (server *APIServer) Run() error {
 	songStore := song.NewSongStore(server.db)
 	questionAnswerStore := questionAnswer.NewQuestionAnswerStore(server.db)
 	writingStore := writing.NewWritingStore(server.db)
+	photoStore := photo.NewPhotoStore(server.db)
 
 	userHandler := user.NewHandler(userStore)
 	userHandler.RegisterRoutes(subrouter)
@@ -65,6 +67,8 @@ func (server *APIServer) Run() error {
 	questionAnswerHanlder.RegisterRoutes(subrouter)
 	writingHandler := writing.NewHandler(capsuleStore, userStore, writingStore)
 	writingHandler.RegisterRoutes(subrouter)
+	photoHandler := photo.NewHandler(capsuleStore, userStore, fileStore, photoStore)
+	photoHandler.RegisterRoutes(subrouter)
 
 	// TODO: limit origins for prod
 	c := cors.New(cors.Options{

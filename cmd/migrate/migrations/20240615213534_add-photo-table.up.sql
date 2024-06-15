@@ -1,0 +1,14 @@
+CREATE TABLE IF NOT EXISTS photos (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `userId` INT UNSIGNED NOT NULL,
+  `capsuleId` INT UNSIGNED NOT NULL,
+
+  `objectName` VARCHAR(255) NOT NULL,
+  `fileURL` VARCHAR(255),
+
+  `createdAt` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+  PRIMARY KEY (`id`),
+  FOREIGN KEY (`userId`) REFERENCES users(`id`),
+  FOREIGN KEY (`capsuleId`) REFERENCES capsules(`id`)
+);

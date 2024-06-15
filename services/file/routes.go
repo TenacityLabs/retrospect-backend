@@ -3,6 +3,7 @@ package file
 import (
 	"net/http"
 
+	"github.com/TenacityLabs/time-capsule-backend/config"
 	"github.com/TenacityLabs/time-capsule-backend/services/auth"
 	"github.com/TenacityLabs/time-capsule-backend/types"
 	"github.com/TenacityLabs/time-capsule-backend/utils"
@@ -23,6 +24,10 @@ func NewHandler(userStore types.UserStore, fileStore types.FileStore) *Handler {
 
 func (handler *Handler) RegisterRoutes(router *mux.Router) {
 	router.HandleFunc("/files/upload", auth.WithJWTAuth(handler.handleFileUpload, handler.userStore)).Methods(http.MethodPost)
+
+	if config.Envs.GoEnv == "development" {
+		router.HandleFunc("/files/delete", auth.WithJWTAuth(handler.handleFileDelete, handler.userStore)).Methods(http.MethodPost)
+	}
 }
 
 func (handler *Handler) handleFileUpload(w http.ResponseWriter, r *http.Request) {
@@ -40,11 +45,28 @@ func (handler *Handler) handleFileUpload(w http.ResponseWriter, r *http.Request)
 
 	userID := auth.GetUserIdFromContext(r.Context())
 
-	fileURL, err := handler.fileStore.UploadFile(userID, file)
+	objectName, fileURL, err := handler.fileStore.UploadFile(userID, file)
 	if err != nil {
 		utils.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
 
-	utils.WriteJSON(w, http.StatusOK, map[string]string{"imageURL": fileURL})
+	utils.WriteJSON(w, http.StatusOK, map[string]string{"objectName": objectName, "fileURL": fileURL})
+}
+
+func (handler *Handler) handleFileDelete(w http.ResponseWriter, r *http.Request) {
+	var payload types.DeleteFilePayload
+	err := utils.ParseJSON(r, &payload)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	err = handler.fileStore.DeleteFile(payload.ObjectName)
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusOK, nil)
 }

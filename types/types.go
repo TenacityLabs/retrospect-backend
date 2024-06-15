@@ -42,8 +42,12 @@ type RegisterUserPayload struct {
 // ====================================================================
 
 type FileStore interface {
-	UploadFile(userId uint, file multipart.File) (string, error)
-	// DeleteFile(fileURL string) error
+	UploadFile(userId uint, file multipart.File) (string, string, error)
+	DeleteFile(objectName string) error
+}
+
+type DeleteFilePayload struct {
+	ObjectName string `json:"objectName" validate:"required"`
 }
 
 // ====================================================================
@@ -79,6 +83,7 @@ type GetCapsuleByIdResponse struct {
 	Songs           []Song           `json:"songs"`
 	QuestionAnswers []QuestionAnswer `json:"questionAnswers"`
 	Writings        []Writing        `json:"writings"`
+	Photos          []Photo          `json:"photos"`
 }
 
 type CreateCapsulePayload struct {
@@ -199,4 +204,33 @@ type UpdateWritingPayload struct {
 type DeleteWritingPayload struct {
 	WritingID uint `json:"writingId" validate:"required"`
 	CapsuleID uint `json:"capsuleId" validate:"required"`
+}
+
+// ====================================================================
+// Photo
+// ====================================================================
+
+type Photo struct {
+	ID         uint      `json:"id"`
+	UserID     uint      `json:"userId"`
+	CapsuleID  uint      `json:"capsuleId"`
+	ObjectName string    `json:"objectName"`
+	FileURL    string    `json:"fileURL"`
+	CreatedAt  time.Time `json:"createdAt"`
+}
+
+type PhotoStore interface {
+	GetPhotos(capsuleID uint) ([]Photo, error)
+	CreatePhoto(userID uint, capsuleID uint, fileURL string) (uint, error)
+	DeletePhoto(userID uint, capsuleID uint, photoID uint) (string, error)
+}
+
+type CreatePhotoPayload struct {
+	CapsuleID uint   `json:"capsuleId" validate:"required"`
+	FileURL   string `json:"fileURL"`
+}
+
+type DeletePhotoPayload struct {
+	CapsuleID uint `json:"capsuleId" validate:"required"`
+	PhotoID   uint `json:"photoId" validate:"required"`
 }

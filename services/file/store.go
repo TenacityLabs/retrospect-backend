@@ -21,15 +21,15 @@ func NewFileStore(bucket *storage.BucketHandle) *FileStore {
 	}
 }
 
-func generateRandomFilename(userId uint) string {
-	const filenameLength = 16
+func generateRandomFileName(userId uint) string {
+	const fileNameLength = 16
 	timestamp := time.Now().UnixNano()                   // Using UnixNano for high precision
-	randomString := generateRandomString(filenameLength) // Generate a random string of 8 characters
+	randomString := generateRandomString(fileNameLength) // Generate a random string of 8 characters
 	return fmt.Sprintf("%d-%s-%d", userId, randomString, timestamp)
 }
 
 func generateRandomString(length int) string {
-	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	const charset = "abcdefghijklmnopqrstuvwxyz" + "ABCDEFGHIJKLMNOPQRSTUVWXYZ" + "0123456789"
 	randomBytes := make([]byte, length)
 	for i := range randomBytes {
 		randomBytes[i] = charset[rand.Intn(len(charset))]
@@ -37,27 +37,33 @@ func generateRandomString(length int) string {
 	return string(randomBytes)
 }
 
-func (fileStore *FileStore) UploadFile(userId uint, file multipart.File) (string, error) {
-	randomFilename := generateRandomFilename(userId)
+func (fileStore *FileStore) UploadFile(userId uint, file multipart.File) (string, string, error) {
+	randomFileName := generateRandomFileName(userId)
 
-	object := fileStore.bucket.Object(randomFilename)
+	object := fileStore.bucket.Object(randomFileName)
 	writer := object.NewWriter(context.Background())
 
 	defer file.Close()
 	_, err := io.Copy(writer, file)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 	err = writer.Close()
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	attrs, err := object.Attrs(context.Background())
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 	fileURL := attrs.MediaLink
+	objectName := object.ObjectName()
 
-	return fileURL, nil
+	return objectName, fileURL, nil
+}
+
+func (fileStore *FileStore) DeleteFile(objectName string) error {
+	object := fileStore.bucket.Object(objectName)
+	return object.Delete(context.Background())
 }

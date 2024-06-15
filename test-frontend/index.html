@@ -31,7 +31,8 @@
       });
 
       if (response.ok) {
-        console.log('File uploaded successfully!')
+        const data = await response.json();
+        console.log(data);
       } else {
         console.error('Error:', response);
       }
