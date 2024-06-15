@@ -131,6 +131,7 @@ type QuestionAnswer struct {
 type QuestionAnswerStore interface {
 	GetQuestionAnswers(capsuleID uint) ([]QuestionAnswer, error)
 	CreateQuestionAnswer(userID, capsuleID uint, prompt string, answer string) (uint, error)
+	UpdateQuestionAnswer(userID, capsuleID uint, questionAnswerID uint, prompt string, answer string) error
 	DeleteQuestionAnswer(userID uint, capsuleID uint, questionAnswerID uint) error
 }
 
@@ -140,9 +141,16 @@ type CreateQuestionAnswerPayload struct {
 	Answer    string `json:"answer" validate:"required,max=1000"`
 }
 
+type UpdateQuestionAnswerPayload struct {
+	QuestionAnswerID uint   `json:"questionAnswerId" validate:"required"`
+	CapsuleID        uint   `json:"capsuleId" validate:"required"`
+	Prompt           string `json:"prompt" validate:"required,max=255"`
+	Answer           string `json:"answer" validate:"required,max=1000"`
+}
+
 type DeleteQuestionAnswerPayload struct {
-	CapsuleID        uint `json:"capsuleId" validate:"required"`
 	QuestionAnswerID uint `json:"questionAnswerId" validate:"required"`
+	CapsuleID        uint `json:"capsuleId" validate:"required"`
 }
 
 // ====================================================================
@@ -160,6 +168,7 @@ type Writing struct {
 type WritingStore interface {
 	GetWritings(capsuleID uint) ([]Writing, error)
 	CreateWriting(userID, capsuleID uint, writing string) (uint, error)
+	UpdateWriting(userID, capsuleID, writingID uint, writing string) error
 	DeleteWriting(userID uint, capsuleID uint, writingID uint) error
 }
 
@@ -168,7 +177,13 @@ type CreateWritingPayload struct {
 	Writing   string `json:"writing" validate:"required,max=1000"`
 }
 
+type UpdateWritingPayload struct {
+	CapsuleID uint   `json:"capsuleId" validate:"required"`
+	WritingID uint   `json:"writingId" validate:"required"`
+	Writing   string `json:"writing" validate:"required,max=1000"`
+}
+
 type DeleteWritingPayload struct {
-	CapsuleID uint `json:"capsuleId" validate:"required"`
 	WritingID uint `json:"writingId" validate:"required"`
+	CapsuleID uint `json:"capsuleId" validate:"required"`
 }

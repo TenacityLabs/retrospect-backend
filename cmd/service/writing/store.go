@@ -51,6 +51,11 @@ func (writingStore *WritingStore) GetWritings(capsuleID uint) ([]types.Writing, 
 	return writings, nil
 }
 
+func (writingStore *WritingStore) UpdateWriting(userID, capsuleID uint, writingID uint, writing string) error {
+	_, err := writingStore.db.Exec("UPDATE writings SET writing = ? WHERE id = ? AND userId = ? AND capsuleId = ?", writing, writingID, userID, capsuleID)
+	return err
+}
+
 func (writingStore *WritingStore) CreateWriting(userID uint, capsuleID uint, writing string) (uint, error) {
 	res, err := writingStore.db.Exec("INSERT INTO writings (userId, capsuleId, writing) VALUES (?, ?, ?)", userID, capsuleID, writing)
 	if err != nil {

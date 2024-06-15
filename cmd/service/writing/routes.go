@@ -27,6 +27,7 @@ func NewHandler(capsuleStore types.CapsuleStore, userStore types.UserStore, writ
 
 func (handler *Handler) RegisterRoutes(router *mux.Router) {
 	router.HandleFunc("/writings/create", auth.WithJWTAuth(handler.handleCreateWriting, handler.userStore)).Methods(http.MethodPost)
+	router.HandleFunc("/writings/update", auth.WithJWTAuth(handler.handleUpdateWriting, handler.userStore)).Methods(http.MethodPost)
 	router.HandleFunc("/writings/delete", auth.WithJWTAuth(handler.handleDeleteWriting, handler.userStore)).Methods(http.MethodPost)
 }
 
@@ -61,6 +62,32 @@ func (handler *Handler) handleCreateWriting(w http.ResponseWriter, r *http.Reque
 		return
 	}
 	utils.WriteJSON(w, http.StatusOK, map[string]uint{"writingId": writingID})
+}
+
+func (handler *Handler) handleUpdateWriting(w http.ResponseWriter, r *http.Request) {
+	// get json payload
+	var payload types.UpdateWritingPayload
+	err := utils.ParseJSON(r, &payload)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	// validate payload
+	if err := utils.Validate.Struct(payload); err != nil {
+		errors := err.(validator.ValidationErrors)
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("invalid payload %v", errors))
+		return
+	}
+
+	userID := auth.GetUserIdFromContext(r.Context())
+
+	err = handler.writingStore.UpdateWriting(userID, payload.CapsuleID, payload.WritingID, payload.Writing)
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+	utils.WriteJSON(w, http.StatusOK, nil)
 }
 
 func (handler *Handler) handleDeleteWriting(w http.ResponseWriter, r *http.Request) {

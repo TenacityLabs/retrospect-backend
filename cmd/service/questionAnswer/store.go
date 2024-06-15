@@ -66,6 +66,11 @@ func (questionAnswerStore *QuestionAnswerStore) CreateQuestionAnswer(userID uint
 	return uint(id), nil
 }
 
+func (questionAnswerStore *QuestionAnswerStore) UpdateQuestionAnswer(userID uint, capsuleID uint, questionAnswerID uint, prompt string, answer string) error {
+	_, err := questionAnswerStore.db.Exec("UPDATE questionAnswers SET prompt = ?, answer = ? WHERE id = ? AND userId = ? AND capsuleId = ?", prompt, answer, questionAnswerID, userID, capsuleID)
+	return err
+}
+
 func (questionAnswerStore *QuestionAnswerStore) DeleteQuestionAnswer(userID uint, capsuleID uint, questionAnswerID uint) error {
 	_, err := questionAnswerStore.db.Exec("DELETE FROM questionAnswers WHERE id = ? AND userId = ? AND capsuleId = ?", questionAnswerID, userID, capsuleID)
 	return err
