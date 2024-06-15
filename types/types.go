@@ -35,6 +35,19 @@ type RegisterUserPayload struct {
 }
 
 // ====================================================================
+// File
+// ====================================================================
+
+type FileStore interface {
+	UploadFile(file []byte, filename string) (string, error)
+	// DeleteFile(fileURL string) error
+}
+
+type UploadFilePayload struct {
+	File []byte
+}
+
+// ====================================================================
 // Capsule
 // ====================================================================
 

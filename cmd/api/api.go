@@ -5,11 +5,12 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/TenacityLabs/time-capsule-backend/cmd/service/capsule"
-	"github.com/TenacityLabs/time-capsule-backend/cmd/service/questionAnswer"
-	"github.com/TenacityLabs/time-capsule-backend/cmd/service/song"
-	"github.com/TenacityLabs/time-capsule-backend/cmd/service/user"
-	"github.com/TenacityLabs/time-capsule-backend/cmd/service/writing"
+	"github.com/TenacityLabs/time-capsule-backend/services/capsule"
+	"github.com/TenacityLabs/time-capsule-backend/services/file"
+	"github.com/TenacityLabs/time-capsule-backend/services/questionAnswer"
+	"github.com/TenacityLabs/time-capsule-backend/services/song"
+	"github.com/TenacityLabs/time-capsule-backend/services/user"
+	"github.com/TenacityLabs/time-capsule-backend/services/writing"
 	"github.com/gorilla/mux"
 )
 
@@ -31,6 +32,8 @@ func (server *APIServer) Run() error {
 
 	userStore := user.NewUserStore(server.db)
 	capsuleStore := capsule.NewCapsuleStore(server.db)
+	fileStore := file.NewFileStore()
+
 	songStore := song.NewSongStore(server.db)
 	questionAnswerStore := questionAnswer.NewQuestionAnswerStore(server.db)
 	writingStore := writing.NewWritingStore(server.db)
@@ -39,6 +42,8 @@ func (server *APIServer) Run() error {
 	userHandler.RegisterRoutes(subrouter)
 	capsuleHandler := capsule.NewHandler(capsuleStore, userStore, songStore, questionAnswerStore, writingStore)
 	capsuleHandler.RegisterRoutes(subrouter)
+	fileHandler := file.NewHandler(userStore, fileStore)
+	fileHandler.RegisterRoutes(subrouter)
 
 	songHandler := song.NewHandler(capsuleStore, userStore, songStore)
 	songHandler.RegisterRoutes(subrouter)

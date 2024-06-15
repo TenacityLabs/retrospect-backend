@@ -1,2 +1,3 @@
 .env
-/bin/*
+# bin/
+google-cloud-credentials.json
