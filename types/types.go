@@ -84,6 +84,8 @@ type GetCapsuleByIdResponse struct {
 	QuestionAnswers []QuestionAnswer `json:"questionAnswers"`
 	Writings        []Writing        `json:"writings"`
 	Photos          []Photo          `json:"photos"`
+	Audios          []Audio          `json:"audios"`
+	// TODO: add photos and audios
 }
 
 type CreateCapsulePayload struct {
@@ -234,4 +236,34 @@ type CreatePhotoPayload struct {
 type DeletePhotoPayload struct {
 	CapsuleID uint `json:"capsuleId" validate:"required"`
 	PhotoID   uint `json:"photoId" validate:"required"`
+}
+
+// ====================================================================
+// Sound
+// ====================================================================
+
+type Audio struct {
+	ID         uint      `json:"id"`
+	UserID     uint      `json:"userId"`
+	CapsuleID  uint      `json:"capsuleId"`
+	ObjectName string    `json:"objectName"`
+	FileURL    string    `json:"fileURL"`
+	CreatedAt  time.Time `json:"createdAt"`
+}
+
+type AudioStore interface {
+	GetAudios(capsuleID uint) ([]Audio, error)
+	CreateAudio(userID uint, capsuleID uint, objectName string, fileURL string) (uint, error)
+	DeleteAudio(userID uint, capsuleID uint, audioID uint) (string, error)
+}
+
+type CreateAudioPayload struct {
+	CapsuleID  uint   `json:"capsuleId" validate:"required"`
+	ObjectName string `json:"objectName" validate:"required"`
+	FileURL    string `json:"fileURL" validate:"required"`
+}
+
+type DeleteAudioPayload struct {
+	CapsuleID uint `json:"capsuleId" validate:"required"`
+	AudioID   uint `json:"audioId" validate:"required"`
 }

@@ -8,6 +8,7 @@ import (
 
 	"cloud.google.com/go/storage"
 	"github.com/TenacityLabs/time-capsule-backend/config"
+	"github.com/TenacityLabs/time-capsule-backend/services/audio"
 	"github.com/TenacityLabs/time-capsule-backend/services/capsule"
 	"github.com/TenacityLabs/time-capsule-backend/services/file"
 	"github.com/TenacityLabs/time-capsule-backend/services/photo"
@@ -53,10 +54,11 @@ func (server *APIServer) Run() error {
 	questionAnswerStore := questionAnswer.NewQuestionAnswerStore(server.db)
 	writingStore := writing.NewWritingStore(server.db)
 	photoStore := photo.NewPhotoStore(server.db)
+	audioStore := audio.NewAudioStore(server.db)
 
 	userHandler := user.NewHandler(userStore)
 	userHandler.RegisterRoutes(subrouter)
-	capsuleHandler := capsule.NewHandler(capsuleStore, userStore, songStore, questionAnswerStore, writingStore, photoStore)
+	capsuleHandler := capsule.NewHandler(capsuleStore, userStore, songStore, questionAnswerStore, writingStore, photoStore, audioStore)
 	capsuleHandler.RegisterRoutes(subrouter)
 	fileHandler := file.NewHandler(userStore, fileStore)
 	fileHandler.RegisterRoutes(subrouter)
@@ -69,6 +71,8 @@ func (server *APIServer) Run() error {
 	writingHandler.RegisterRoutes(subrouter)
 	photoHandler := photo.NewHandler(capsuleStore, userStore, fileStore, photoStore)
 	photoHandler.RegisterRoutes(subrouter)
+	audioHandler := audio.NewHandler(capsuleStore, userStore, fileStore, audioStore)
+	audioHandler.RegisterRoutes(subrouter)
 
 	// TODO: limit origins for prod
 	c := cors.New(cors.Options{

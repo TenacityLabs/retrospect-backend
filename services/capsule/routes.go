@@ -19,6 +19,7 @@ type Handler struct {
 	questionAnswerStore types.QuestionAnswerStore
 	writingStore        types.WritingStore
 	photoStore          types.PhotoStore
+	audioStore          types.AudioStore
 }
 
 func NewHandler(
@@ -28,6 +29,7 @@ func NewHandler(
 	questionAnswerStore types.QuestionAnswerStore,
 	writingStore types.WritingStore,
 	photoStore types.PhotoStore,
+	audioStore types.AudioStore,
 ) *Handler {
 	return &Handler{
 		capsuleStore:        capsuleStore,
@@ -36,6 +38,7 @@ func NewHandler(
 		questionAnswerStore: questionAnswerStore,
 		writingStore:        writingStore,
 		photoStore:          photoStore,
+		audioStore:          audioStore,
 	}
 }
 
@@ -99,6 +102,13 @@ func (handler *Handler) handleGetCapsuleById(w http.ResponseWriter, r *http.Requ
 		utils.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
+	audios, err := handler.audioStore.GetAudios(uint(capsule.ID))
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	// TODO: get all capsule components
 
 	utils.WriteJSON(w, http.StatusOK, types.GetCapsuleByIdResponse{
 		Capsule:         capsule,
@@ -106,6 +116,7 @@ func (handler *Handler) handleGetCapsuleById(w http.ResponseWriter, r *http.Requ
 		QuestionAnswers: questionAnswers,
 		Writings:        writings,
 		Photos:          photos,
+		Audios:          audios,
 	})
 }
 
