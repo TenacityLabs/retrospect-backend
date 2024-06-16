@@ -57,7 +57,7 @@ func (handler *Handler) handleCreatePhoto(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	photoID, err := handler.photoStore.CreatePhoto(userID, payload.CapsuleID, payload.FileURL)
+	photoID, err := handler.photoStore.CreatePhoto(userID, payload.CapsuleID, payload.ObjectName, payload.FileURL)
 	if err != nil {
 		utils.WriteError(w, http.StatusInternalServerError, err)
 		return

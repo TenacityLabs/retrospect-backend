@@ -56,7 +56,7 @@ func (server *APIServer) Run() error {
 
 	userHandler := user.NewHandler(userStore)
 	userHandler.RegisterRoutes(subrouter)
-	capsuleHandler := capsule.NewHandler(capsuleStore, userStore, songStore, questionAnswerStore, writingStore)
+	capsuleHandler := capsule.NewHandler(capsuleStore, userStore, songStore, questionAnswerStore, writingStore, photoStore)
 	capsuleHandler.RegisterRoutes(subrouter)
 	fileHandler := file.NewHandler(userStore, fileStore)
 	fileHandler.RegisterRoutes(subrouter)

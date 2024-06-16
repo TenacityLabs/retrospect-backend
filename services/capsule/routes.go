@@ -18,6 +18,7 @@ type Handler struct {
 	songStore           types.SongStore
 	questionAnswerStore types.QuestionAnswerStore
 	writingStore        types.WritingStore
+	photoStore          types.PhotoStore
 }
 
 func NewHandler(
@@ -26,6 +27,7 @@ func NewHandler(
 	songStore types.SongStore,
 	questionAnswerStore types.QuestionAnswerStore,
 	writingStore types.WritingStore,
+	photoStore types.PhotoStore,
 ) *Handler {
 	return &Handler{
 		capsuleStore:        capsuleStore,
@@ -33,6 +35,7 @@ func NewHandler(
 		songStore:           songStore,
 		questionAnswerStore: questionAnswerStore,
 		writingStore:        writingStore,
+		photoStore:          photoStore,
 	}
 }
 
@@ -91,12 +94,18 @@ func (handler *Handler) handleGetCapsuleById(w http.ResponseWriter, r *http.Requ
 		utils.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
+	photos, err := handler.photoStore.GetPhotos(uint(capsule.ID))
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
 
 	utils.WriteJSON(w, http.StatusOK, types.GetCapsuleByIdResponse{
 		Capsule:         capsule,
 		Songs:           songs,
 		QuestionAnswers: questionAnswers,
 		Writings:        writings,
+		Photos:          photos,
 	})
 }
 

@@ -53,9 +53,9 @@ func (photoStore *PhotoStore) GetPhotos(capsuleID uint) ([]types.Photo, error) {
 	return photos, nil
 }
 
-func (photoStore *PhotoStore) CreatePhoto(userID uint, capsuleID uint, fileURL string) (uint, error) {
+func (photoStore *PhotoStore) CreatePhoto(userID uint, capsuleID uint, objectName string, fileURL string) (uint, error) {
 	// check if photo already exists in capsule
-	rows, err := photoStore.db.Query("SELECT * FROM photos WHERE capsuleId = ? AND userId = ? AND fileURL = ?", capsuleID, userID, fileURL)
+	rows, err := photoStore.db.Query("SELECT * FROM photos WHERE userId = ? AND capsuleId = ? AND fileURL = ?", userID, capsuleID, fileURL)
 	if err != nil {
 		return 0, err
 	}
@@ -70,7 +70,7 @@ func (photoStore *PhotoStore) CreatePhoto(userID uint, capsuleID uint, fileURL s
 		return 0, fmt.Errorf("you already added this photo to the capsule")
 	}
 
-	res, err := photoStore.db.Exec("INSERT INTO photos (userId, capsuleId, fileURL) VALUES (?, ?, ?, ?, ?, ?)", userID, capsuleID, fileURL)
+	res, err := photoStore.db.Exec("INSERT INTO photos (userId, capsuleId, objectName, fileURL) VALUES (?, ?, ?, ?)", userID, capsuleID, objectName, fileURL)
 	if err != nil {
 		return 0, err
 	}
@@ -85,7 +85,7 @@ func (photoStore *PhotoStore) CreatePhoto(userID uint, capsuleID uint, fileURL s
 
 func (photoStore *PhotoStore) DeletePhoto(userID uint, capsuleID uint, photoID uint) (string, error) {
 	// find original photo
-	rows, err := photoStore.db.Query("SELECT * FROM photos WHERE id = ? capsuleId = ? AND userId = ?", photoID, capsuleID, userID)
+	rows, err := photoStore.db.Query("SELECT * FROM photos WHERE id = ? AND userId = ? AND capsuleId = ?", photoID, userID, capsuleID)
 	if err != nil {
 		return "", err
 	}

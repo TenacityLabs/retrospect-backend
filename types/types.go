@@ -221,13 +221,14 @@ type Photo struct {
 
 type PhotoStore interface {
 	GetPhotos(capsuleID uint) ([]Photo, error)
-	CreatePhoto(userID uint, capsuleID uint, fileURL string) (uint, error)
+	CreatePhoto(userID uint, capsuleID uint, objectName string, fileURL string) (uint, error)
 	DeletePhoto(userID uint, capsuleID uint, photoID uint) (string, error)
 }
 
 type CreatePhotoPayload struct {
-	CapsuleID uint   `json:"capsuleId" validate:"required"`
-	FileURL   string `json:"fileURL"`
+	CapsuleID  uint   `json:"capsuleId" validate:"required"`
+	ObjectName string `json:"objectName" validate:"required"`
+	FileURL    string `json:"fileURL" validate:"required"`
 }
 
 type DeletePhotoPayload struct {

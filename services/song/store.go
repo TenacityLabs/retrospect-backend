@@ -57,7 +57,7 @@ func (songStore *SongStore) GetSongs(capsuleID uint) ([]types.Song, error) {
 
 func (songStore *SongStore) CreateSong(userID uint, capsuleID uint, spotifyID string, name string, artistName string, albumArtURL string) (uint, error) {
 	// check if song already exists in capsule
-	rows, err := songStore.db.Query("SELECT * FROM songs WHERE capsuleId = ? AND userId = ? AND spotifyId = ?", capsuleID, userID, spotifyID)
+	rows, err := songStore.db.Query("SELECT * FROM songs WHERE userId = ? AND capsuleId = ? AND spotifyId = ?", userID, capsuleID, spotifyID)
 	if err != nil {
 		return 0, err
 	}
