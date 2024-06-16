@@ -10,6 +10,7 @@ import (
 	"github.com/TenacityLabs/time-capsule-backend/config"
 	"github.com/TenacityLabs/time-capsule-backend/services/audio"
 	"github.com/TenacityLabs/time-capsule-backend/services/capsule"
+	"github.com/TenacityLabs/time-capsule-backend/services/doodle"
 	"github.com/TenacityLabs/time-capsule-backend/services/file"
 	"github.com/TenacityLabs/time-capsule-backend/services/photo"
 	"github.com/TenacityLabs/time-capsule-backend/services/questionAnswer"
@@ -55,10 +56,11 @@ func (server *APIServer) Run() error {
 	writingStore := writing.NewWritingStore(server.db)
 	photoStore := photo.NewPhotoStore(server.db)
 	audioStore := audio.NewAudioStore(server.db)
+	doodleStore := doodle.NewDoodleStore(server.db)
 
 	userHandler := user.NewHandler(userStore)
 	userHandler.RegisterRoutes(subrouter)
-	capsuleHandler := capsule.NewHandler(capsuleStore, userStore, songStore, questionAnswerStore, writingStore, photoStore, audioStore)
+	capsuleHandler := capsule.NewHandler(capsuleStore, userStore, songStore, questionAnswerStore, writingStore, photoStore, audioStore, doodleStore)
 	capsuleHandler.RegisterRoutes(subrouter)
 	fileHandler := file.NewHandler(userStore, fileStore)
 	fileHandler.RegisterRoutes(subrouter)
@@ -73,6 +75,8 @@ func (server *APIServer) Run() error {
 	photoHandler.RegisterRoutes(subrouter)
 	audioHandler := audio.NewHandler(capsuleStore, userStore, fileStore, audioStore)
 	audioHandler.RegisterRoutes(subrouter)
+	doodleHandler := doodle.NewHandler(capsuleStore, userStore, fileStore, doodleStore)
+	doodleHandler.RegisterRoutes(subrouter)
 
 	// TODO: limit origins for prod
 	c := cors.New(cors.Options{

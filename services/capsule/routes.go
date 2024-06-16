@@ -20,6 +20,7 @@ type Handler struct {
 	writingStore        types.WritingStore
 	photoStore          types.PhotoStore
 	audioStore          types.AudioStore
+	doodleStore         types.DoodleStore
 }
 
 func NewHandler(
@@ -30,6 +31,7 @@ func NewHandler(
 	writingStore types.WritingStore,
 	photoStore types.PhotoStore,
 	audioStore types.AudioStore,
+	doodleStore types.DoodleStore,
 ) *Handler {
 	return &Handler{
 		capsuleStore:        capsuleStore,
@@ -39,6 +41,7 @@ func NewHandler(
 		writingStore:        writingStore,
 		photoStore:          photoStore,
 		audioStore:          audioStore,
+		doodleStore:         doodleStore,
 	}
 }
 
@@ -107,6 +110,11 @@ func (handler *Handler) handleGetCapsuleById(w http.ResponseWriter, r *http.Requ
 		utils.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
+	doodles, err := handler.doodleStore.GetDoodles(uint(capsule.ID))
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
 
 	// TODO: get all capsule components
 
@@ -117,6 +125,7 @@ func (handler *Handler) handleGetCapsuleById(w http.ResponseWriter, r *http.Requ
 		Writings:        writings,
 		Photos:          photos,
 		Audios:          audios,
+		Doodles:         doodles,
 	})
 }
 

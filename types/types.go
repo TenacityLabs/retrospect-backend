@@ -85,6 +85,7 @@ type GetCapsuleByIdResponse struct {
 	Writings        []Writing        `json:"writings"`
 	Photos          []Photo          `json:"photos"`
 	Audios          []Audio          `json:"audios"`
+	Doodles         []Doodle         `json:"doodles"`
 	// TODO: add photos and audios
 }
 
@@ -239,7 +240,7 @@ type DeletePhotoPayload struct {
 }
 
 // ====================================================================
-// Sound
+// Audio
 // ====================================================================
 
 type Audio struct {
@@ -266,4 +267,34 @@ type CreateAudioPayload struct {
 type DeleteAudioPayload struct {
 	CapsuleID uint `json:"capsuleId" validate:"required"`
 	AudioID   uint `json:"audioId" validate:"required"`
+}
+
+// ====================================================================
+// Doodle
+// ====================================================================
+
+type Doodle struct {
+	ID         uint      `json:"id"`
+	UserID     uint      `json:"userId"`
+	CapsuleID  uint      `json:"capsuleId"`
+	ObjectName string    `json:"objectName"`
+	FileURL    string    `json:"fileURL"`
+	CreatedAt  time.Time `json:"createdAt"`
+}
+
+type DoodleStore interface {
+	GetDoodles(capsuleID uint) ([]Doodle, error)
+	CreateDoodle(userID uint, capsuleID uint, objectName string, fileURL string) (uint, error)
+	DeleteDoodle(userID uint, capsuleID uint, doodleID uint) (string, error)
+}
+
+type CreateDoodlePayload struct {
+	CapsuleID  uint   `json:"capsuleId" validate:"required"`
+	ObjectName string `json:"objectName" validate:"required"`
+	FileURL    string `json:"fileURL" validate:"required"`
+}
+
+type DeleteDoodlePayload struct {
+	CapsuleID uint `json:"capsuleId" validate:"required"`
+	DoodleID  uint `json:"doodleId" validate:"required"`
 }
