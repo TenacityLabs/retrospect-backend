@@ -55,6 +55,7 @@ func (handler *Handler) RegisterRoutes(router *mux.Router) {
 	router.HandleFunc("/capsules/create", auth.WithJWTAuth(handler.handleCreateCapsule, handler.userStore)).Methods(http.MethodPost)
 	router.HandleFunc("/capsules/join", auth.WithJWTAuth(handler.handleJoinCapsule, handler.userStore)).Methods(http.MethodPost)
 	router.HandleFunc("/capsules/delete", auth.WithJWTAuth(handler.handleDeleteCapsule, handler.userStore)).Methods(http.MethodPost)
+	router.HandleFunc("/capsules/name", auth.WithJWTAuth(handler.handleNameCapsule, handler.userStore)).Methods(http.MethodPost)
 	router.HandleFunc("/capsules/seal", auth.WithJWTAuth(handler.handleSealCapsule, handler.userStore)).Methods(http.MethodPost)
 }
 
@@ -221,6 +222,42 @@ func (handler *Handler) handleDeleteCapsule(w http.ResponseWriter, r *http.Reque
 	}
 
 	err = handler.capsuleStore.DeleteCapsule(userID, payload.CapsuleID)
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+	utils.WriteJSON(w, http.StatusOK, nil)
+}
+
+func (handler *Handler) handleNameCapsule(w http.ResponseWriter, r *http.Request) {
+	// get json payload
+	var payload types.NameCapsulePayload
+	err := utils.ParseJSON(r, &payload)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	// validate payload
+	if err := utils.Validate.Struct(payload); err != nil {
+		errors := err.(validator.ValidationErrors)
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("invalid payload %v", errors))
+		return
+	}
+
+	userID := auth.GetUserIdFromContext(r.Context())
+
+	capsule, err := handler.capsuleStore.GetCapsuleById(userID, payload.CapsuleID)
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+	if capsule.CapsuleOwnerID != userID {
+		utils.WriteError(w, http.StatusForbidden, fmt.Errorf("you are not the owner of the capsule"))
+		return
+	}
+
+	err = handler.capsuleStore.NameCapsule(userID, payload.CapsuleID, payload.Name)
 	if err != nil {
 		utils.WriteError(w, http.StatusInternalServerError, err)
 		return

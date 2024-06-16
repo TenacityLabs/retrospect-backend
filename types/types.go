@@ -77,6 +77,7 @@ type CapsuleStore interface {
 	JoinCapsule(userId uint, code string) error
 	DeleteCapsule(userId uint, capsuleId uint) error
 	SealCapsule(userId uint, capsuleId uint, dateToOpen time.Time) error
+	NameCapsule(userId uint, capsuleId uint, name string) error
 }
 
 type GetCapsuleByIdResponse struct {
@@ -107,6 +108,11 @@ type DeleteCapsulePayload struct {
 type SealCapsulePayload struct {
 	CapsuleID  uint   `json:"capsuleId" validate:"required"`
 	DateToOpen string `json:"dateToOpen" validate:"required"`
+}
+
+type NameCapsulePayload struct {
+	CapsuleID uint   `json:"capsuleId" validate:"required"`
+	Name      string `json:"name" validate:"required,min=1,max=255"`
 }
 
 // ====================================================================

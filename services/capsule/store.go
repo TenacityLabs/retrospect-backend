@@ -226,3 +226,8 @@ func (capsuleStore *CapsuleStore) SealCapsule(userId uint, capsuleId uint, dateT
 	_, err := capsuleStore.db.Exec("UPDATE capsules SET sealed = TRUE, dateToOpen = ? WHERE id = ? AND capsuleOwnerId = ?", dateToOpen, capsuleId, userId)
 	return err
 }
+
+func (capsuleStore *CapsuleStore) NameCapsule(userId uint, capsuleId uint, name string) error {
+	_, err := capsuleStore.db.Exec("UPDATE capsules SET name = ? WHERE id = ? AND capsuleOwnerId = ?", name, capsuleId, userId)
+	return err
+}
