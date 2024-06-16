@@ -1,0 +1,33 @@
+<html>
+
+<h1>Test Frontend for Date Selection</h1>
+<input type="date" name="date" id="date" />
+<button id="send-date">Submit Date</button>
+
+<script>
+  document.getElementById('send-date').addEventListener('click', async () => {
+    try {
+      console.log(document.getElementById('date').value);
+      const response = await fetch('http://localhost:8080/api/v1/capsules/seal', {
+        method: 'POST',
+        headers: {
+          "authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHBpcmVkQXQiOjE3MTg5MTYzNzUsInVzZXJJRCI6IjEifQ.Aceo8I2o-W9n2rrIio1BHUQ2Q1PLMA7udiBkLuHkTB8"
+        },
+        body: JSON.stringify({
+          capsuleId: 1,
+          date: document.getElementById('date').value
+        }),
+      });
+      if (response.ok) {
+        const data = await response.json();
+        console.log(data);
+      } else {
+        console.error('Error:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error uploading file:', error);
+    }
+  });
+</script>
+
+</html>

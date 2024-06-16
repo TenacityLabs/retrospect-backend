@@ -221,3 +221,8 @@ func (capsuleStore *CapsuleStore) DeleteCapsule(userId uint, capsuleId uint) err
 	_, err = capsuleStore.db.Exec("DELETE FROM capsules WHERE id = ? AND capsuleOwnerId = ?", capsuleId, userId)
 	return err
 }
+
+func (capsuleStore *CapsuleStore) SealCapsule(userId uint, capsuleId uint, dateToOpen time.Time) error {
+	_, err := capsuleStore.db.Exec("UPDATE capsules SET sealed = TRUE, dateToOpen = ? WHERE id = ? AND capsuleOwnerId = ?", dateToOpen, capsuleId, userId)
+	return err
+}

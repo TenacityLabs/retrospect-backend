@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/TenacityLabs/time-capsule-backend/services/auth"
 	"github.com/TenacityLabs/time-capsule-backend/types"
@@ -54,6 +55,7 @@ func (handler *Handler) RegisterRoutes(router *mux.Router) {
 	router.HandleFunc("/capsules/create", auth.WithJWTAuth(handler.handleCreateCapsule, handler.userStore)).Methods(http.MethodPost)
 	router.HandleFunc("/capsules/join", auth.WithJWTAuth(handler.handleJoinCapsule, handler.userStore)).Methods(http.MethodPost)
 	router.HandleFunc("/capsules/delete", auth.WithJWTAuth(handler.handleDeleteCapsule, handler.userStore)).Methods(http.MethodPost)
+	router.HandleFunc("/capsules/seal", auth.WithJWTAuth(handler.handleSealCapsule, handler.userStore)).Methods(http.MethodPost)
 }
 
 func (handler *Handler) handleGetCapsules(w http.ResponseWriter, r *http.Request) {
@@ -208,7 +210,63 @@ func (handler *Handler) handleDeleteCapsule(w http.ResponseWriter, r *http.Reque
 
 	userID := auth.GetUserIdFromContext(r.Context())
 
+	capsule, err := handler.capsuleStore.GetCapsuleById(userID, payload.CapsuleID)
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+	if capsule.CapsuleOwnerID != userID {
+		utils.WriteError(w, http.StatusForbidden, fmt.Errorf("you are not the owner of the capsule"))
+		return
+	}
+
 	err = handler.capsuleStore.DeleteCapsule(userID, payload.CapsuleID)
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+	utils.WriteJSON(w, http.StatusOK, nil)
+}
+
+func (handler *Handler) handleSealCapsule(w http.ResponseWriter, r *http.Request) {
+	// get json payload
+	var payload types.SealCapsulePayload
+	err := utils.ParseJSON(r, &payload)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	// validate payload
+	if err := utils.Validate.Struct(payload); err != nil {
+		errors := err.(validator.ValidationErrors)
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("invalid payload %v", errors))
+		return
+	}
+
+	dateToOpen, err := time.Parse("2006-01-02", payload.DateToOpen)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("invalid date to open the capsule"))
+		return
+	}
+
+	userID := auth.GetUserIdFromContext(r.Context())
+
+	capsule, err := handler.capsuleStore.GetCapsuleById(userID, payload.CapsuleID)
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+	if capsule.CapsuleOwnerID != userID {
+		utils.WriteError(w, http.StatusForbidden, fmt.Errorf("you are not the owner of the capsule"))
+		return
+	}
+	if capsule.Sealed {
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("capsule is already sealed"))
+		return
+	}
+
+	err = handler.capsuleStore.SealCapsule(userID, payload.CapsuleID, dateToOpen)
 	if err != nil {
 		utils.WriteError(w, http.StatusInternalServerError, err)
 		return
