@@ -86,6 +86,7 @@ type GetCapsuleByIdResponse struct {
 	Photos          []Photo          `json:"photos"`
 	Audios          []Audio          `json:"audios"`
 	Doodles         []Doodle         `json:"doodles"`
+	MiscFiles       []MiscFile       `json:"miscFiles"`
 	// TODO: add photos and audios
 }
 
@@ -297,4 +298,34 @@ type CreateDoodlePayload struct {
 type DeleteDoodlePayload struct {
 	CapsuleID uint `json:"capsuleId" validate:"required"`
 	DoodleID  uint `json:"doodleId" validate:"required"`
+}
+
+// ====================================================================
+// MiscFile
+// ====================================================================
+
+type MiscFile struct {
+	ID         uint      `json:"id"`
+	UserID     uint      `json:"userId"`
+	CapsuleID  uint      `json:"capsuleId"`
+	ObjectName string    `json:"objectName"`
+	FileURL    string    `json:"fileURL"`
+	CreatedAt  time.Time `json:"createdAt"`
+}
+
+type MiscFileStore interface {
+	GetMiscFiles(capsuleID uint) ([]MiscFile, error)
+	CreateMiscFile(userID uint, capsuleID uint, objectName string, fileURL string) (uint, error)
+	DeleteMiscFile(userID uint, capsuleID uint, miscFileID uint) (string, error)
+}
+
+type CreateMiscFilePayload struct {
+	CapsuleID  uint   `json:"capsuleId" validate:"required"`
+	ObjectName string `json:"objectName" validate:"required"`
+	FileURL    string `json:"fileURL" validate:"required"`
+}
+
+type DeleteMiscFilePayload struct {
+	CapsuleID  uint `json:"capsuleId" validate:"required"`
+	MiscFileID uint `json:"miscFileId" validate:"required"`
 }
