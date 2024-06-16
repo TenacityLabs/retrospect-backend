@@ -75,7 +75,7 @@ type CapsuleStore interface {
 	GetCapsuleById(userId uint, capsuleId uint) (Capsule, error)
 	CreateCapsule(userId uint, vessel string, public bool) (uint, error)
 	JoinCapsule(userId uint, code string) error
-	DeleteCapsule(userId uint, capsuleId uint) error
+	DeleteCapsule(userId uint, capsuleId uint) ([]string, error)
 	SealCapsule(userId uint, capsuleId uint, dateToOpen time.Time) error
 	NameCapsule(userId uint, capsuleId uint, name string) error
 }

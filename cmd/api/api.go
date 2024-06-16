@@ -65,6 +65,8 @@ func (server *APIServer) Run() error {
 	capsuleHandler := capsule.NewHandler(
 		capsuleStore,
 		userStore,
+		fileStore,
+
 		songStore,
 		questionAnswerStore,
 		writingStore,

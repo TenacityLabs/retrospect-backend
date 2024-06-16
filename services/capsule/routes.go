@@ -16,6 +16,7 @@ import (
 type Handler struct {
 	capsuleStore        types.CapsuleStore
 	userStore           types.UserStore
+	fileStore           types.FileStore
 	songStore           types.SongStore
 	questionAnswerStore types.QuestionAnswerStore
 	writingStore        types.WritingStore
@@ -28,6 +29,8 @@ type Handler struct {
 func NewHandler(
 	capsuleStore types.CapsuleStore,
 	userStore types.UserStore,
+	fileStore types.FileStore,
+
 	songStore types.SongStore,
 	questionAnswerStore types.QuestionAnswerStore,
 	writingStore types.WritingStore,
@@ -37,8 +40,10 @@ func NewHandler(
 	miscFileStore types.MiscFileStore,
 ) *Handler {
 	return &Handler{
-		capsuleStore:        capsuleStore,
-		userStore:           userStore,
+		capsuleStore: capsuleStore,
+		userStore:    userStore,
+		fileStore:    fileStore,
+
 		songStore:           songStore,
 		questionAnswerStore: questionAnswerStore,
 		writingStore:        writingStore,
@@ -221,11 +226,20 @@ func (handler *Handler) handleDeleteCapsule(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	err = handler.capsuleStore.DeleteCapsule(userID, payload.CapsuleID)
+	objectNames, err := handler.capsuleStore.DeleteCapsule(userID, payload.CapsuleID)
 	if err != nil {
 		utils.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
+
+	for _, objectName := range objectNames {
+		err = handler.fileStore.DeleteFile(objectName)
+		if err != nil {
+			utils.WriteError(w, http.StatusInternalServerError, err)
+			return
+		}
+	}
+
 	utils.WriteJSON(w, http.StatusOK, nil)
 }
 

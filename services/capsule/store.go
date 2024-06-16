@@ -206,20 +206,119 @@ func (capsuleStore *CapsuleStore) JoinCapsule(userId uint, code string) error {
 	return err
 }
 
-func (capsuleStore *CapsuleStore) DeleteCapsule(userId uint, capsuleId uint) error {
-	// TODO: delete all songs, questionAnswers, files, etc.
+func (capsuleStore *CapsuleStore) DeleteCapsule(userId uint, capsuleId uint) ([]string, error) {
+	var objectNames []string
+
 	_, err := capsuleStore.db.Exec("DELETE FROM songs WHERE capsuleId = ?", capsuleId)
 	if err != nil {
-		return err
+		return objectNames, err
 	}
 
 	_, err = capsuleStore.db.Exec("DELETE FROM questionAnswers WHERE capsuleId = ?", capsuleId)
 	if err != nil {
-		return err
+		return objectNames, err
+	}
+
+	_, err = capsuleStore.db.Exec("DELETE FROM writings WHERE capsuleId = ?", capsuleId)
+	if err != nil {
+		return objectNames, err
+	}
+
+	// get all photo objectNames
+	rows, err := capsuleStore.db.Query("SELECT objectName FROM photos WHERE capsuleId = ?", capsuleId)
+	if err != nil {
+		return objectNames, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var objectName string
+		if err := rows.Scan(&objectName); err != nil {
+			return objectNames, err
+		}
+		objectNames = append(objectNames, objectName)
+	}
+	if err := rows.Err(); err != nil {
+		return objectNames, err
+	}
+
+	// get all audios
+	rows, err = capsuleStore.db.Query("SELECT objectName FROM audios WHERE capsuleId = ?", capsuleId)
+	if err != nil {
+		return objectNames, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var objectName string
+		if err := rows.Scan(&objectName); err != nil {
+			return objectNames, err
+		}
+		objectNames = append(objectNames, objectName)
+	}
+	if err := rows.Err(); err != nil {
+		return objectNames, err
+	}
+
+	// get all doodles
+	rows, err = capsuleStore.db.Query("SELECT objectName FROM doodles WHERE capsuleId = ?", capsuleId)
+	if err != nil {
+		return objectNames, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var objectName string
+		if err := rows.Scan(&objectName); err != nil {
+			return objectNames, err
+		}
+		objectNames = append(objectNames, objectName)
+	}
+	if err := rows.Err(); err != nil {
+		return objectNames, err
+	}
+
+	// get all misc files
+	rows, err = capsuleStore.db.Query("SELECT objectName FROM miscFiles WHERE capsuleId = ?", capsuleId)
+	if err != nil {
+		return objectNames, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var objectName string
+		if err := rows.Scan(&objectName); err != nil {
+			return objectNames, err
+		}
+		objectNames = append(objectNames, objectName)
+	}
+	if err := rows.Err(); err != nil {
+		return objectNames, err
+	}
+
+	// delete all photos, audios, doodles, and misc files
+	_, err = capsuleStore.db.Exec("DELETE FROM photos WHERE capsuleId = ?", capsuleId)
+	if err != nil {
+		return objectNames, err
+	}
+
+	_, err = capsuleStore.db.Exec("DELETE FROM audios WHERE capsuleId = ?", capsuleId)
+	if err != nil {
+		return objectNames, err
+	}
+
+	_, err = capsuleStore.db.Exec("DELETE FROM doodles WHERE capsuleId = ?", capsuleId)
+	if err != nil {
+		return objectNames, err
+	}
+
+	_, err = capsuleStore.db.Exec("DELETE FROM miscFiles WHERE capsuleId = ?", capsuleId)
+	if err != nil {
+		return objectNames, err
 	}
 
 	_, err = capsuleStore.db.Exec("DELETE FROM capsules WHERE id = ? AND capsuleOwnerId = ?", capsuleId, userId)
-	return err
+	return objectNames, err
 }
 
 func (capsuleStore *CapsuleStore) SealCapsule(userId uint, capsuleId uint, dateToOpen time.Time) error {
