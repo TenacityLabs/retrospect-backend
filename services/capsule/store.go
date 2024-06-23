@@ -105,6 +105,33 @@ func (capsuleStore *CapsuleStore) GetCapsuleById(userId uint, capsuleId uint) (t
 	if capsule.CapsuleOwnerID != userId && capsule.CapsuleMember1ID != userId && capsule.CapsuleMember2ID != userId && capsule.CapsuleMember3ID != userId {
 		return *capsule, fmt.Errorf("user is not authorized to view this capsule")
 	}
+	if capsule.Sealed == "sealed" || capsule.Sealed == "opened" {
+		return *capsule, fmt.Errorf("capsule cannot be modified because it has already been sealed or opened")
+	}
+
+	return *capsule, nil
+}
+
+func (capsuleStore *CapsuleStore) GetCapsuleByIdUnsafe(userId uint, capsuleId uint) (types.Capsule, error) {
+	capsule := new(types.Capsule)
+	rows, err := capsuleStore.db.Query("SELECT * FROM capsules WHERE id = ?", capsuleId)
+	if err != nil {
+		return *capsule, err
+	}
+
+	for rows.Next() {
+		capsule, err = scanRowIntoCapsule(rows)
+		if err != nil {
+			return *capsule, err
+		}
+	}
+
+	if capsule.ID != capsuleId {
+		return *capsule, fmt.Errorf("capsule not found")
+	}
+	if capsule.CapsuleOwnerID != userId && capsule.CapsuleMember1ID != userId && capsule.CapsuleMember2ID != userId && capsule.CapsuleMember3ID != userId {
+		return *capsule, fmt.Errorf("user is not authorized to view this capsule")
+	}
 
 	return *capsule, nil
 }
@@ -321,12 +348,17 @@ func (capsuleStore *CapsuleStore) DeleteCapsule(userId uint, capsuleId uint) ([]
 	return objectNames, err
 }
 
-func (capsuleStore *CapsuleStore) SealCapsule(userId uint, capsuleId uint, dateToOpen time.Time) error {
-	_, err := capsuleStore.db.Exec("UPDATE capsules SET sealed = TRUE, dateToOpen = ? WHERE id = ? AND capsuleOwnerId = ?", dateToOpen, capsuleId, userId)
+func (capsuleStore *CapsuleStore) NameCapsule(userId uint, capsuleId uint, name string) error {
+	_, err := capsuleStore.db.Exec("UPDATE capsules SET name = ? WHERE id = ? AND capsuleOwnerId = ?", name, capsuleId, userId)
 	return err
 }
 
-func (capsuleStore *CapsuleStore) NameCapsule(userId uint, capsuleId uint, name string) error {
-	_, err := capsuleStore.db.Exec("UPDATE capsules SET name = ? WHERE id = ? AND capsuleOwnerId = ?", name, capsuleId, userId)
+func (capsuleStore *CapsuleStore) SealCapsule(userId uint, capsuleId uint, dateToOpen time.Time) error {
+	_, err := capsuleStore.db.Exec("UPDATE capsules SET sealed = 'sealed', dateToOpen = ? WHERE id = ? AND capsuleOwnerId = ?", dateToOpen, capsuleId, userId)
+	return err
+}
+
+func (capsuleStore *CapsuleStore) OpenCapsule(userId uint, capsuleId uint) error {
+	_, err := capsuleStore.db.Exec("UPDATE capsules SET sealed = 'opened' WHERE id = ? AND capsuleOwnerId = ?", capsuleId, userId)
 	return err
 }

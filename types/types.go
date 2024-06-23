@@ -67,17 +67,19 @@ type Capsule struct {
 	Name             string     `json:"name"`
 	DateToOpen       *time.Time `json:"dateToOpen"`
 	EmailSent        bool       `json:"emailSent"`
-	Sealed           bool       `json:"sealed"`
+	Sealed           string     `json:"sealed"`
 }
 
 type CapsuleStore interface {
 	GetCapsules(userId uint) ([]Capsule, error)
 	GetCapsuleById(userId uint, capsuleId uint) (Capsule, error)
+	GetCapsuleByIdUnsafe(userId uint, capsuleId uint) (Capsule, error)
 	CreateCapsule(userId uint, vessel string, public bool) (uint, error)
 	JoinCapsule(userId uint, code string) error
 	DeleteCapsule(userId uint, capsuleId uint) ([]string, error)
-	SealCapsule(userId uint, capsuleId uint, dateToOpen time.Time) error
 	NameCapsule(userId uint, capsuleId uint, name string) error
+	SealCapsule(userId uint, capsuleId uint, dateToOpen time.Time) error
+	OpenCapsule(userId uint, capsuleId uint) error
 }
 
 type GetCapsuleByIdResponse struct {
@@ -105,14 +107,18 @@ type DeleteCapsulePayload struct {
 	CapsuleID uint `json:"capsuleId" validate:"required"`
 }
 
+type NameCapsulePayload struct {
+	CapsuleID uint   `json:"capsuleId" validate:"required"`
+	Name      string `json:"name" validate:"required,min=1,max=255"`
+}
+
 type SealCapsulePayload struct {
 	CapsuleID  uint   `json:"capsuleId" validate:"required"`
 	DateToOpen string `json:"dateToOpen" validate:"required"`
 }
 
-type NameCapsulePayload struct {
-	CapsuleID uint   `json:"capsuleId" validate:"required"`
-	Name      string `json:"name" validate:"required,min=1,max=255"`
+type OpenCapsulePayload struct {
+	CapsuleID uint `json:"capsuleId" validate:"required"`
 }
 
 // ====================================================================

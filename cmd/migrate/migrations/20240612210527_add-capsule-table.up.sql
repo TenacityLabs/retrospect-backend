@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS capsules (
   `name` VARCHAR(255) NOT NULL,
   `dateToOpen` TIMESTAMP, -- date to open refers to the date when the time capsule can be opened
   `emailSent` BOOLEAN NOT NULL DEFAULT FALSE, -- whether or not an email has been sent to the capsule owner
-  `sealed` BOOLEAN NOT NULL DEFAULT FALSE, -- sealed refers to whether the time capsule has been sealed (and can't be opened until the specified date)
+  `sealed` ENUM('preseal', 'sealed', 'opened') DEFAULT 'preseal', -- sealed refers to whether the time capsule has been sealed (and can't be opened until the specified date)
 
   FOREIGN KEY (`capsuleOwnerId`) REFERENCES users(`id`),
   FOREIGN KEY (`capsuleMember1Id`) REFERENCES users(`id`),
