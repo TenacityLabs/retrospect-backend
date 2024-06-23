@@ -344,11 +344,6 @@ func (handler *Handler) handleOpenCapsule(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if err != nil {
-		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("invalid date to open the capsule"))
-		return
-	}
-
 	userID := auth.GetUserIdFromContext(r.Context())
 
 	capsule, err := handler.capsuleStore.GetCapsuleByIdUnsafe(userID, payload.CapsuleID)
@@ -362,6 +357,11 @@ func (handler *Handler) handleOpenCapsule(w http.ResponseWriter, r *http.Request
 	}
 	if capsule.Sealed != "sealed" {
 		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("capsule is not currently sealed"))
+		return
+	}
+	curDate := time.Now()
+	if curDate.Before(*capsule.DateToOpen) {
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("invalid date to open the capsule"))
 		return
 	}
 
