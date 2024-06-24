@@ -6,6 +6,8 @@
 
 <button id="test-ping">Test Ping</button>
 
+<button id="get-user">Get User</button>
+
 <script>
 
   document.getElementById('upload').addEventListener('click', async () => {
@@ -59,6 +61,27 @@
       console.error('Error uploading file:', error);
     }
   });
+
+  document.getElementById('get-user').addEventListener('click', async () => {
+    try {
+      console.log('fetching user')
+      const response = await fetch('http://localhost:8080/api/v1/user', {
+        method: 'GET',
+        headers: {
+          "authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHBpcmVkQXQiOjE3MTg5MTYzNzUsInVzZXJJRCI6IjEifQ.Aceo8I2o-W9n2rrIio1BHUQ2Q1PLMA7udiBkLuHkTB8"
+        }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        console.log(data);
+      } else {
+        console.error('Error:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error uploading file:', error);
+    }
+  });
+
 </script>
 
 </html>
