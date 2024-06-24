@@ -355,10 +355,15 @@ func (handler *Handler) handleOpenCapsule(w http.ResponseWriter, r *http.Request
 		utils.WriteError(w, http.StatusForbidden, fmt.Errorf("you are not the owner of the capsule"))
 		return
 	}
+	if capsule.CapsuleOwnerID != userID {
+		utils.WriteError(w, http.StatusForbidden, fmt.Errorf("you are not the owner of the capsule"))
+		return
+	}
 	if capsule.Sealed != "sealed" {
 		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("capsule is not currently sealed"))
 		return
 	}
+
 	curDate := time.Now()
 	if curDate.Before(*capsule.DateToOpen) {
 		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("invalid date to open the capsule"))
