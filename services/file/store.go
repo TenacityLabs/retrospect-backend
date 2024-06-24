@@ -6,6 +6,7 @@ import (
 	"io"
 	"math/rand"
 	"mime/multipart"
+	"path/filepath"
 	"time"
 
 	"cloud.google.com/go/storage"
@@ -38,8 +39,11 @@ func generateRandomString(length int) string {
 	return string(randomBytes)
 }
 
-func (fileStore *FileStore) UploadFile(userId uint, file multipart.File) (string, string, error) {
-	randomFileName := generateRandomFileName(userId)
+func (fileStore *FileStore) UploadFile(userId uint, file multipart.File, fileHeader *multipart.FileHeader) (string, string, error) {
+	// Extract the file extension from the original file name
+	fileExtension := filepath.Ext(fileHeader.Filename)
+
+	randomFileName := generateRandomFileName(userId) + fileExtension
 
 	object := fileStore.bucket.Object(randomFileName)
 	writer := object.NewWriter(context.Background())

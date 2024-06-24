@@ -42,7 +42,7 @@ type RegisterUserPayload struct {
 // ====================================================================
 
 type FileStore interface {
-	UploadFile(userId uint, file multipart.File) (string, string, error)
+	UploadFile(userId uint, file multipart.File, fileHeader *multipart.FileHeader) (string, string, error)
 	DeleteFile(objectName string) error
 }
 
@@ -91,7 +91,6 @@ type GetCapsuleByIdResponse struct {
 	Audios          []Audio          `json:"audios"`
 	Doodles         []Doodle         `json:"doodles"`
 	MiscFiles       []MiscFile       `json:"miscFiles"`
-	// TODO: add photos and audios
 }
 
 type CreateCapsulePayload struct {

@@ -37,7 +37,7 @@ func (handler *Handler) handleFileUpload(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	file, _, err := r.FormFile("file")
+	file, fileHeader, err := r.FormFile("file")
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
@@ -45,7 +45,7 @@ func (handler *Handler) handleFileUpload(w http.ResponseWriter, r *http.Request)
 
 	userID := auth.GetUserIdFromContext(r.Context())
 
-	objectName, fileURL, err := handler.fileStore.UploadFile(userID, file)
+	objectName, fileURL, err := handler.fileStore.UploadFile(userID, file, fileHeader)
 	if err != nil {
 		utils.WriteError(w, http.StatusInternalServerError, err)
 		return
