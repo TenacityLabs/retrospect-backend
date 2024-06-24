@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/storage"
+	"github.com/TenacityLabs/time-capsule-backend/config"
 )
 
 type FileStore struct {
@@ -53,12 +54,15 @@ func (fileStore *FileStore) UploadFile(userId uint, file multipart.File) (string
 		return "", "", err
 	}
 
-	attrs, err := object.Attrs(context.Background())
-	if err != nil {
-		return "", "", err
-	}
-	fileURL := attrs.MediaLink
+	// attrs, err := object.Attrs(context.Background())
+	// if err != nil {
+	// 	return "", "", err
+	// }
+	// fileURL := attrs.MediaLink
 	objectName := object.ObjectName()
+
+	bucketName := config.Envs.GCSBucketName
+	fileURL := fmt.Sprintf("https://storage.googleapis.com/%s/%s", bucketName, randomFileName)
 
 	return objectName, fileURL, nil
 }
