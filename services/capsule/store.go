@@ -3,7 +3,6 @@ package capsule
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"math/rand"
 	"net/smtp"
 	"time"
@@ -372,6 +371,7 @@ func (capsuleStore *CapsuleStore) SendReminderMail() error {
 		FROM capsules c
 		JOIN users u ON c.capsuleOwnerId = u.id
 		WHERE c.sealed = 'sealed' AND c.dateToOpen < NOW() AND c.emailSent = FALSE
+		LIMIT 490
 	`
 
 	rows, err := capsuleStore.db.Query(findMailingListQuery)
@@ -388,7 +388,6 @@ func (capsuleStore *CapsuleStore) SendReminderMail() error {
 		}
 		emails = append(emails, email)
 	}
-	log.Printf("Emails to send: %v", emails)
 
 	if len(emails) > 0 {
 		auth := smtp.PlainAuth(
@@ -421,7 +420,6 @@ func (capsuleStore *CapsuleStore) SendReminderMail() error {
 		if err != nil {
 			return err
 		}
-		log.Printf("Updated db")
 	}
 
 	return nil
