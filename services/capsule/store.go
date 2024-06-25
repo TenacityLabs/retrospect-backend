@@ -3,9 +3,12 @@ package capsule
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"math/rand"
+	"net/smtp"
 	"time"
 
+	"github.com/TenacityLabs/time-capsule-backend/config"
 	"github.com/TenacityLabs/time-capsule-backend/types"
 )
 
@@ -361,4 +364,65 @@ func (capsuleStore *CapsuleStore) SealCapsule(userId uint, capsuleId uint, dateT
 func (capsuleStore *CapsuleStore) OpenCapsule(userId uint, capsuleId uint) error {
 	_, err := capsuleStore.db.Exec("UPDATE capsules SET sealed = 'opened' WHERE id = ? AND capsuleOwnerId = ?", capsuleId, userId)
 	return err
+}
+
+func (capsuleStore *CapsuleStore) SendReminderMail() error {
+	findMailingListQuery := `
+		SELECT u.email
+		FROM capsules c
+		JOIN users u ON c.capsuleOwnerId = u.id
+		WHERE c.sealed = 'sealed' AND c.dateToOpen < NOW() AND c.emailSent = FALSE
+	`
+
+	rows, err := capsuleStore.db.Query(findMailingListQuery)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+
+	emails := make([]string, 0)
+	for rows.Next() {
+		var email string
+		if err := rows.Scan(&email); err != nil {
+			return err
+		}
+		emails = append(emails, email)
+	}
+	log.Printf("Emails to send: %v", emails)
+
+	if len(emails) > 0 {
+		auth := smtp.PlainAuth(
+			"",
+			"retrospect.space@gmail.com",
+			config.Envs.GmailAppPassword,
+			"smtp.gmail.com",
+		)
+
+		msg := "Subject: Your Time Capsule is Ready!\n\nYour time capsule is ready to be opened! Open our app to see what's inside!"
+
+		err = smtp.SendMail(
+			"smtp.gmail.com:587",
+			auth,
+			"retrospect.space@gmail.com",
+			emails,
+			[]byte(msg),
+		)
+		if err != nil {
+			return err
+		}
+
+		// update db to mark capsules as emailSent
+		updateEmailSentQuery := `
+			UPDATE capsules
+			SET emailSent = TRUE
+			WHERE sealed = 'sealed' AND dateToOpen < NOW() AND emailSent = FALSE
+		`
+		_, err = capsuleStore.db.Exec(updateEmailSentQuery)
+		if err != nil {
+			return err
+		}
+		log.Printf("Updated db")
+	}
+
+	return nil
 }

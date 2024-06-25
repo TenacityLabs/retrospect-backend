@@ -63,6 +63,7 @@ func (handler *Handler) RegisterRoutes(router *mux.Router) {
 	router.HandleFunc("/capsules/name", auth.WithJWTAuth(handler.handleNameCapsule, handler.userStore)).Methods(http.MethodPost)
 	router.HandleFunc("/capsules/seal", auth.WithJWTAuth(handler.handleSealCapsule, handler.userStore)).Methods(http.MethodPost)
 	router.HandleFunc("/capsules/open", auth.WithJWTAuth(handler.handleOpenCapsule, handler.userStore)).Methods(http.MethodPost)
+	router.HandleFunc("/capsules/send-reminder-mail", handler.handleSendReminderMail).Methods(http.MethodPost)
 }
 
 func (handler *Handler) handleGetCapsules(w http.ResponseWriter, r *http.Request) {
@@ -371,6 +372,15 @@ func (handler *Handler) handleOpenCapsule(w http.ResponseWriter, r *http.Request
 	}
 
 	err = handler.capsuleStore.OpenCapsule(userID, payload.CapsuleID)
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+	utils.WriteJSON(w, http.StatusOK, nil)
+}
+
+func (handler *Handler) handleSendReminderMail(w http.ResponseWriter, r *http.Request) {
+	err := handler.capsuleStore.SendReminderMail()
 	if err != nil {
 		utils.WriteError(w, http.StatusInternalServerError, err)
 		return

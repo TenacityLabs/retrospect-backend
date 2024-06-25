@@ -92,6 +92,7 @@ type CapsuleStore interface {
 	NameCapsule(userId uint, capsuleId uint, name string) error
 	SealCapsule(userId uint, capsuleId uint, dateToOpen time.Time) error
 	OpenCapsule(userId uint, capsuleId uint) error
+	SendReminderMail() error
 }
 
 type GetCapsuleByIdResponse struct {
