@@ -27,6 +27,9 @@ func (h *Handler) RegisterRoutes(router *mux.Router) {
 	router.HandleFunc("/user/login", h.handleLogin).Methods("POST")
 	router.HandleFunc("/user/register", h.handleRegister).Methods("POST")
 	router.HandleFunc("/user", auth.WithJWTAuth(h.handleGetUser, h.userStore)).Methods("GET")
+	router.HandleFunc("/user/delete", auth.WithJWTAuth(h.handleDeleteUser, h.userStore)).Methods("POST")
+	router.HandleFunc("/user/update", auth.WithJWTAuth(h.handleUpdateUser, h.userStore)).Methods("POST")
+	router.HandleFunc("/user/update-password", auth.WithJWTAuth(h.handleUpdateUserPassword, h.userStore)).Methods("POST")
 }
 
 func (handler *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
@@ -98,12 +101,7 @@ func (handler *Handler) handleRegister(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// create user
-	err = handler.userStore.CreateUser(types.User{
-		FirstName: payload.FirstName,
-		LastName:  payload.LastName,
-		Email:     payload.Email,
-		Password:  hashedPassword,
-	})
+	err = handler.userStore.CreateUser(payload.FirstName, payload.LastName, payload.Email, hashedPassword)
 	if err != nil {
 		utils.WriteError(w, http.StatusInternalServerError, err)
 		return
@@ -114,10 +112,6 @@ func (handler *Handler) handleRegister(w http.ResponseWriter, r *http.Request) {
 
 func (handler *Handler) handleGetUser(w http.ResponseWriter, r *http.Request) {
 	userID := auth.GetUserIdFromContext(r.Context())
-	if userID == 0 {
-		auth.PermissionDenied(w)
-		return
-	}
 
 	user, err := handler.userStore.GetUserById(userID)
 	if err != nil {
@@ -126,4 +120,54 @@ func (handler *Handler) handleGetUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.WriteJSON(w, http.StatusOK, map[string]types.User{"user": *user})
+}
+
+func (handler *Handler) handleDeleteUser(w http.ResponseWriter, r *http.Request) {
+	userID := auth.GetUserIdFromContext(r.Context())
+
+	err := handler.userStore.DeleteUser(userID)
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusOK, nil)
+}
+
+func (handler *Handler) handleUpdateUser(w http.ResponseWriter, r *http.Request) {
+	userID := auth.GetUserIdFromContext(r.Context())
+
+	var payload types.UpdateUserPayload
+	err := utils.ParseJSON(r, &payload)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	err = handler.userStore.UpdateUser(userID, payload.FirstName, payload.LastName, payload.Email)
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusCreated, nil)
+}
+
+func (handler *Handler) handleUpdateUserPassword(w http.ResponseWriter, r *http.Request) {
+	userID := auth.GetUserIdFromContext(r.Context())
+
+	var payload types.UpdateUserPasswordPayload
+	err := utils.ParseJSON(r, &payload)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	err = handler.userStore.UpdateUserPassword(userID, payload.Password)
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusCreated, nil)
 }

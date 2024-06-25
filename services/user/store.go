@@ -77,8 +77,8 @@ func (userStore *UserStore) GetUserById(userId uint) (*types.User, error) {
 	return user, nil
 }
 
-func (userStore *UserStore) CreateUser(user types.User) error {
-	_, err := userStore.db.Exec("INSERT INTO users (firstName, lastName, email, password) VALUES (?, ?, ?, ?)", user.FirstName, user.LastName, user.Email, user.Password)
+func (userStore *UserStore) CreateUser(firstName string, lastName string, email string, password string) error {
+	_, err := userStore.db.Exec("INSERT INTO users (firstName, lastName, email, password) VALUES (?, ?, ?, ?)", firstName, lastName, email, password)
 	if err != nil {
 		return err
 	}
@@ -89,6 +89,22 @@ func (userStore *UserStore) CreateUser(user types.User) error {
 // but this feature is only for testing, so it's fine
 func (userStore *UserStore) DeleteUser(userId uint) error {
 	_, err := userStore.db.Exec("DELETE FROM users WHERE id = ?", userId)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (userStore *UserStore) UpdateUser(userId uint, firstName string, lastName string, email string) error {
+	_, err := userStore.db.Exec("UPDATE users SET firstName = ?, lastName = ?, email = ? WHERE id = ?", firstName, lastName, email, userId)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (userStore *UserStore) UpdateUserPassword(userId uint, password string) error {
+	_, err := userStore.db.Exec("UPDATE users SET password = ? WHERE id = ?", password, userId)
 	if err != nil {
 		return err
 	}
