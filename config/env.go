@@ -20,6 +20,7 @@ type Config struct {
 	JWTSecret              string
 	GCSBucketName          string
 	GmailAppPassword       string
+	AdminAPIKey            string
 }
 
 // create global variable so that env isn't reinitialized every time it's called
@@ -40,6 +41,7 @@ func initConfig() Config {
 		JWTSecret:              getEnv("JWT_SECRET", "sneakysneaky"),
 		GCSBucketName:          getEnv("BUCKET_NAME", "retrospect_file_bucket"),
 		GmailAppPassword:       getEnv("GMAIL_APP_PASSWORD", ""),
+		AdminAPIKey:            getEnv("ADMIN_API_KEY", "spartan"),
 	}
 }
 

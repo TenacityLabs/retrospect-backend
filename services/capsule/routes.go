@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/TenacityLabs/time-capsule-backend/config"
 	"github.com/TenacityLabs/time-capsule-backend/services/auth"
 	"github.com/TenacityLabs/time-capsule-backend/types"
 	"github.com/TenacityLabs/time-capsule-backend/utils"
@@ -380,6 +381,11 @@ func (handler *Handler) handleOpenCapsule(w http.ResponseWriter, r *http.Request
 }
 
 func (handler *Handler) handleSendReminderMail(w http.ResponseWriter, r *http.Request) {
+	if config.Envs.AdminAPIKey != r.Header.Get("AdminAPIKey") {
+		utils.WriteError(w, http.StatusUnauthorized, fmt.Errorf("invalid admin api key"))
+		return
+	}
+
 	err := handler.capsuleStore.SendReminderMail()
 	if err != nil {
 		utils.WriteError(w, http.StatusInternalServerError, err)
