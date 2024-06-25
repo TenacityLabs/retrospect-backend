@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/rand"
 	"net/smtp"
+	"strings"
 	"time"
 
 	"github.com/TenacityLabs/time-capsule-backend/config"
@@ -367,7 +368,7 @@ func (capsuleStore *CapsuleStore) OpenCapsule(userId uint, capsuleId uint) error
 
 func (capsuleStore *CapsuleStore) SendReminderMail() error {
 	findMailingListQuery := `
-		SELECT u.email
+		SELECT c.id, u.email
 		FROM capsules c
 		JOIN users u ON c.capsuleOwnerId = u.id
 		WHERE c.sealed = 'sealed' AND c.dateToOpen < NOW() AND c.emailSent = FALSE
@@ -381,12 +382,19 @@ func (capsuleStore *CapsuleStore) SendReminderMail() error {
 	defer rows.Close()
 
 	emails := make([]string, 0)
+	uniqueEmails := make(map[string]bool)
+	capsuleIds := make([]uint, 0)
 	for rows.Next() {
 		var email string
-		if err := rows.Scan(&email); err != nil {
+		var capsuleId uint
+		if err := rows.Scan(&capsuleId, &email); err != nil {
 			return err
 		}
-		emails = append(emails, email)
+		if !uniqueEmails[email] {
+			emails = append(emails, email)
+			uniqueEmails[email] = true
+		}
+		capsuleIds = append(capsuleIds, capsuleId)
 	}
 
 	if len(emails) > 0 {
@@ -410,11 +418,15 @@ func (capsuleStore *CapsuleStore) SendReminderMail() error {
 			return err
 		}
 
+		capsuleStringIds := make([]string, len(capsuleIds))
+		for i, capsuleId := range capsuleIds {
+			capsuleStringIds[i] = fmt.Sprint(capsuleId)
+		}
 		// update db to mark capsules as emailSent
 		updateEmailSentQuery := `
 			UPDATE capsules
 			SET emailSent = TRUE
-			WHERE sealed = 'sealed' AND dateToOpen < NOW() AND emailSent = FALSE
+			WHERE id IN (` + strings.Join(capsuleStringIds, ",") + `)
 		`
 		_, err = capsuleStore.db.Exec(updateEmailSentQuery)
 		if err != nil {
