@@ -1,6 +1,10 @@
 {
   "version": 2,
-  "buildCommand": "go build -o bin/retrospect-backend cmd/main.go",
-  "installCommand": "go mod tidy",
+  "builds": [
+    {
+      "src": "cmd/main.go",
+      "use": "@vercel/go"
+    }
+  ],
   "outputDirectory": "bin"
 }
