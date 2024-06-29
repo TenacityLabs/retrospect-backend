@@ -1,5 +1,4 @@
 runtime: go122
-instance_class: F1
 
 env_variables:
   # Add your environment variables here
