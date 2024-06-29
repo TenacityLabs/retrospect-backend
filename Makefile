@@ -1,10 +1,6 @@
 build:
 	@go build -o bin/retrospect-backend cmd/main.go
 
-# for vercel deployment
-vercel-build:
-	go build -o api cmd/main.go
-
 test:
 	@go test -v ./...
 	
