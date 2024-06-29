@@ -5,11 +5,5 @@
       "src": "cmd/main.go",
       "use": "@vercel/go"
     }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "/bin/retrospect-backend"
-    }
   ]
 }
