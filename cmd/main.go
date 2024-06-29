@@ -4,13 +4,14 @@ import (
 	"database/sql"
 	"log"
 
-	"github.com/TenacityLabs/time-capsule-backend/cmd/api"
-	"github.com/TenacityLabs/time-capsule-backend/config"
-	"github.com/TenacityLabs/time-capsule-backend/db"
+	"github.com/TenacityLabs/retrospect-backend/cmd/api"
+	"github.com/TenacityLabs/retrospect-backend/config"
+	"github.com/TenacityLabs/retrospect-backend/db"
 	"github.com/go-sql-driver/mysql"
 )
 
 func main() {
+	log.Printf("passwd: %v", config.Envs.DBPassword)
 	db, err := db.NewMySQLStorage(mysql.Config{
 		User:                 config.Envs.DBUser,
 		Passwd:               config.Envs.DBPassword,

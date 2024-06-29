@@ -36,7 +36,7 @@ func initConfig() Config {
 		DBUser:                 getEnv("DB_USER", "root"),
 		DBPassword:             getEnv("DB_PASSWORD", "Password1"),
 		DBAddress:              fmt.Sprintf("%s:%s", getEnv("DB_ADDRESS", "localhost"), getEnv("DB_PORT", "3306")),
-		DBName:                 getEnv("DB_NAME", "time_capsule"),
+		DBName:                 getEnv("DB_NAME", "retrospect"),
 		JWTExpirationInSeconds: getEnvAsInt("JWT_EXP", 3600*24*7),
 		JWTSecret:              getEnv("JWT_SECRET", "sneakysneaky"),
 		GCSBucketName:          getEnv("BUCKET_NAME", "retrospect_file_bucket"),

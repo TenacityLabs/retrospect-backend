@@ -3,10 +3,10 @@ package file
 import (
 	"net/http"
 
-	"github.com/TenacityLabs/time-capsule-backend/config"
-	"github.com/TenacityLabs/time-capsule-backend/services/auth"
-	"github.com/TenacityLabs/time-capsule-backend/types"
-	"github.com/TenacityLabs/time-capsule-backend/utils"
+	"github.com/TenacityLabs/retrospect-backend/config"
+	"github.com/TenacityLabs/retrospect-backend/services/auth"
+	"github.com/TenacityLabs/retrospect-backend/types"
+	"github.com/TenacityLabs/retrospect-backend/utils"
 	"github.com/gorilla/mux"
 )
 

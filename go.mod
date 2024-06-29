@@ -1,4 +1,4 @@
-module github.com/TenacityLabs/time-capsule-backend
+module github.com/TenacityLabs/retrospect-backend
 
 go 1.22.3
 

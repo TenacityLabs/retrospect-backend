@@ -1,11 +1,15 @@
 build:
-	@go build -o bin/time-capsule-backend cmd/main.go
+	@go build -o bin/retrospect-backend cmd/main.go
+
+# for vercel deployment
+vercel-build:
+	go build -o api cmd/main.go
 
 test:
 	@go test -v ./...
 	
 run: build
-	@./bin/time-capsule-backend
+	@./bin/retrospect-backend
 
 migration:
 	@migrate create -ext sql -dir cmd/migrate/migrations $(filter-out $@,$(MAKECMDGOALS))

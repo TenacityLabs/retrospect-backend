@@ -1,8 +1,8 @@
 build:
-`go build -o bin/time-capsule-backend cmd/main.go`
+`go build -o bin/retrospect-backend cmd/main.go`
 
 run: build
-`./bin/time-capsule-backend`
+`./bin/retrospect-backend`
 
 run:
 `go run cmd/main.go`

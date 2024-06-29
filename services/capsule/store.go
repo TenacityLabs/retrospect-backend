@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/TenacityLabs/time-capsule-backend/config"
-	"github.com/TenacityLabs/time-capsule-backend/types"
+	"github.com/TenacityLabs/retrospect-backend/config"
+	"github.com/TenacityLabs/retrospect-backend/types"
 )
 
 type CapsuleStore struct {

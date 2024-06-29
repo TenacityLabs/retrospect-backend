@@ -3,7 +3,7 @@ package writing
 import (
 	"database/sql"
 
-	"github.com/TenacityLabs/time-capsule-backend/types"
+	"github.com/TenacityLabs/retrospect-backend/types"
 )
 
 type WritingStore struct {

@@ -4,8 +4,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/TenacityLabs/time-capsule-backend/config"
-	"github.com/TenacityLabs/time-capsule-backend/db"
+	"github.com/TenacityLabs/retrospect-backend/config"
+	"github.com/TenacityLabs/retrospect-backend/db"
 	mysqlConfig "github.com/go-sql-driver/mysql"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/mysql"

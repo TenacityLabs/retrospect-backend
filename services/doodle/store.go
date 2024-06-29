@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/TenacityLabs/time-capsule-backend/types"
+	"github.com/TenacityLabs/retrospect-backend/types"
 )
 
 type DoodleStore struct {

@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/storage"
-	"github.com/TenacityLabs/time-capsule-backend/config"
+	"github.com/TenacityLabs/retrospect-backend/config"
 )
 
 type FileStore struct {
