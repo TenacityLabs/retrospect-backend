@@ -11,7 +11,6 @@ import (
 )
 
 func main() {
-	log.Printf("passwd: %v", config.Envs.DBPassword)
 	db, err := db.NewMySQLStorage(mysql.Config{
 		User:                 config.Envs.DBUser,
 		Passwd:               config.Envs.DBPassword,
@@ -27,7 +26,7 @@ func main() {
 
 	initStorage(db)
 
-	server := api.NewAPIServer(":8080", db)
+	server := api.NewAPIServer(config.Envs.Port, db)
 	if err := server.Run(); err != nil {
 		log.Fatal(err)
 	}
