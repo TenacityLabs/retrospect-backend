@@ -26,7 +26,7 @@ func main() {
 
 	initStorage(db)
 
-	server := api.NewAPIServer(":"+config.Envs.Port, db)
+	server := api.NewAPIServer(config.Envs.PublicHost+":"+config.Envs.Port, db)
 	if err := server.Run(); err != nil {
 		log.Fatal(err)
 	}
