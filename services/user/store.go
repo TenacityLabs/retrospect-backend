@@ -121,7 +121,7 @@ func (userStore *UserStore) GetUserById(userId uint) (*types.User, error) {
 }
 
 func (userStore *UserStore) CreateUser(name string, email string, phone string, password string) error {
-	_, err := userStore.db.Exec("INSERT INTO users (Name, email, phone, password) VALUES (?, ?, ?, ?, ?)", name, email, phone, password)
+	_, err := userStore.db.Exec("INSERT INTO users (name, email, phone, password) VALUES (?, ?, ?, ?)", name, email, phone, password)
 	if err != nil {
 		return err
 	}
