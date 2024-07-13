@@ -94,19 +94,29 @@ type DeleteFilePayload struct {
 // ====================================================================
 
 type Capsule struct {
-	ID               uint       `json:"id"`
-	Code             string     `json:"code"`
-	CreatedAt        time.Time  `json:"createdAt"`
-	Public           bool       `json:"public"`
-	CapsuleOwnerID   uint       `json:"capsuleOwnerId"`
-	CapsuleMember1ID uint       `json:"capsuleMember1Id"`
-	CapsuleMember2ID uint       `json:"capsuleMember2Id"`
-	CapsuleMember3ID uint       `json:"capsuleMember3Id"`
-	Vessel           string     `json:"vessel"`
-	Name             string     `json:"name"`
-	DateToOpen       *time.Time `json:"dateToOpen"`
-	EmailSent        bool       `json:"emailSent"`
-	Sealed           string     `json:"sealed"`
+	ID             uint      `json:"id"`
+	Code           string    `json:"code"`
+	CreatedAt      time.Time `json:"createdAt"`
+	Public         bool      `json:"public"`
+	CapsuleOwnerID uint      `json:"capsuleOwnerId"`
+
+	CapsuleMember1ID uint `json:"capsuleMember1Id"`
+	CapsuleMember2ID uint `json:"capsuleMember2Id"`
+	CapsuleMember3ID uint `json:"capsuleMember3Id"`
+	CapsuleMember4ID uint `json:"capsuleMember4Id"`
+	CapsuleMember5ID uint `json:"capsuleMember5Id"`
+
+	CapsuleMember1Sealed bool `json:"capsuleMember1Sealed"`
+	CapsuleMember2Sealed bool `json:"capsuleMember2Sealed"`
+	CapsuleMember3Sealed bool `json:"capsuleMember3Sealed"`
+	CapsuleMember4Sealed bool `json:"capsuleMember4Sealed"`
+	CapsuleMember5Sealed bool `json:"capsuleMember5Sealed"`
+
+	Vessel     string     `json:"vessel"`
+	Name       string     `json:"name"`
+	DateToOpen *time.Time `json:"dateToOpen"`
+	EmailSent  bool       `json:"emailSent"`
+	Sealed     string     `json:"sealed"`
 }
 
 type CapsuleStore interface {
@@ -118,6 +128,7 @@ type CapsuleStore interface {
 	DeleteCapsule(userId uint, capsuleId uint) ([]string, error)
 	NameCapsule(userId uint, capsuleId uint, name string) error
 	SealCapsule(userId uint, capsuleId uint, dateToOpen time.Time) error
+	MemberSealCapsule(userId uint, capsuleId uint, memberNumber uint) error
 	OpenCapsule(userId uint, capsuleId uint) error
 	SendReminderMail() error
 }
@@ -154,6 +165,10 @@ type NameCapsulePayload struct {
 type SealCapsulePayload struct {
 	CapsuleID  uint   `json:"capsuleId" validate:"required"`
 	DateToOpen string `json:"dateToOpen" validate:"required"`
+}
+
+type MemberSealCapsulePayload struct {
+	CapsuleID uint `json:"capsuleId" validate:"required"`
 }
 
 type OpenCapsulePayload struct {

@@ -6,9 +6,18 @@ CREATE TABLE IF NOT EXISTS capsules (
   -- capsules can have 1 owner, and 3 additional members
   `public` BOOLEAN NOT NULL, -- public refers to whether the time capsule can be joined via code
   `capsuleOwnerId` INT UNSIGNED NOT NULL,
+  -- capsule members
   `capsuleMember1Id` INT UNSIGNED,
   `capsuleMember2Id` INT UNSIGNED,
   `capsuleMember3Id` INT UNSIGNED,
+  `capsuleMember4Id` INT UNSIGNED,
+  `capsuleMember5Id` INT UNSIGNED,
+  -- whether or users agreed to seal
+  `capsuleMember1Sealed` BOOLEAN NOT NULL DEFAULT FALSE,
+  `capsuleMember2Sealed` BOOLEAN NOT NULL DEFAULT FALSE,
+  `capsuleMember3Sealed` BOOLEAN NOT NULL DEFAULT FALSE,
+  `capsuleMember4Sealed` BOOLEAN NOT NULL DEFAULT FALSE,
+  `capsuleMember5Sealed` BOOLEAN NOT NULL DEFAULT FALSE,
 
   `vessel` ENUM('box', 'suitcase', 'guitar case', 'bottle', 'shoe', 'garbage') NOT NULL,
 
