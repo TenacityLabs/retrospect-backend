@@ -11,8 +11,7 @@ import (
 
 type User struct {
 	ID            uint      `json:"id"`
-	FirstName     string    `json:"firstName"`
-	LastName      string    `json:"lastName"`
+	Name          string    `json:"name"`
 	Email         string    `json:"email"`
 	Phone         string    `json:"phone"`
 	Password      string    `json:"-"`
@@ -23,9 +22,9 @@ type User struct {
 type UserStore interface {
 	GetUserByEmail(email string) (*User, error)
 	GetUserById(userId uint) (*User, error)
-	CreateUser(firstName string, lastName string, email string, phone string, password string) error
+	CreateUser(name string, email string, phone string, password string) error
 	DeleteUser(userId uint) error
-	UpdateUser(userId uint, firstName string, lastName string, email string, phone string) error
+	UpdateUser(userId uint, name string, email string, phone string) error
 	UpdateUserPassword(userId uint, password string) error
 	ProcessContacts([]Contact) ([]Contact, []Contact, []Contact, error)
 	AddReferral(userId uint, phone string) error
@@ -37,18 +36,16 @@ type LoginUserPayload struct {
 }
 
 type RegisterUserPayload struct {
-	FirstName string `json:"firstName" validate:"required"`
-	LastName  string `json:"lastName" validate:"required"`
-	Email     string `json:"email" validate:"required,email"`
-	Phone     string `json:"phone" validate:"required,min=10,max=10"`
-	Password  string `json:"password" validate:"required,min=6,max=130"`
+	Name     string `json:"name" validate:"required"`
+	Email    string `json:"email" validate:"required,email"`
+	Phone    string `json:"phone" validate:"required,min=10,max=10"`
+	Password string `json:"password" validate:"required,min=6,max=130"`
 }
 
 type UpdateUserPayload struct {
-	FirstName string `json:"firstName" validate:"required"`
-	LastName  string `json:"lastName" validate:"required"`
-	Email     string `json:"email" validate:"required,email"`
-	Phone     string `json:"phone" validate:"required,min=10,max=10"`
+	Name  string `json:"name" validate:"required"`
+	Email string `json:"email" validate:"required,email"`
+	Phone string `json:"phone" validate:"required,min=10,max=10"`
 }
 
 type UpdateUserPasswordPayload struct {
@@ -64,9 +61,8 @@ type AddReferralPayload struct {
 }
 
 type Contact struct {
-	FirstName string `json:"firstName"`
-	LastName  string `json:"lastName"`
-	Phone     string `json:"phone"`
+	Name  string `json:"name"`
+	Phone string `json:"phone"`
 }
 
 type Referral struct {

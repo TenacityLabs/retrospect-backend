@@ -23,8 +23,7 @@ func scanRowIntoUser(row *sql.Rows) (*types.User, error) {
 
 	err := row.Scan(
 		&user.ID,
-		&user.FirstName,
-		&user.LastName,
+		&user.Name,
 		&user.Email,
 		&user.Phone,
 		&user.Password,
@@ -121,8 +120,8 @@ func (userStore *UserStore) GetUserById(userId uint) (*types.User, error) {
 	return user, nil
 }
 
-func (userStore *UserStore) CreateUser(firstName string, lastName string, email string, phone string, password string) error {
-	_, err := userStore.db.Exec("INSERT INTO users (firstName, lastName, email, phone, password) VALUES (?, ?, ?, ?, ?)", firstName, lastName, email, phone, password)
+func (userStore *UserStore) CreateUser(name string, email string, phone string, password string) error {
+	_, err := userStore.db.Exec("INSERT INTO users (Name, email, phone, password) VALUES (?, ?, ?, ?, ?)", name, email, phone, password)
 	if err != nil {
 		return err
 	}
@@ -139,8 +138,8 @@ func (userStore *UserStore) DeleteUser(userId uint) error {
 	return nil
 }
 
-func (userStore *UserStore) UpdateUser(userId uint, firstName string, lastName string, email string, phone string) error {
-	_, err := userStore.db.Exec("UPDATE users SET firstName = ?, lastName = ?, email = ?, phone = ? WHERE id = ?", firstName, lastName, email, phone, userId)
+func (userStore *UserStore) UpdateUser(userId uint, name string, email string, phone string) error {
+	_, err := userStore.db.Exec("UPDATE users SET name = ?, email = ?, phone = ? WHERE id = ?", name, email, phone, userId)
 	if err != nil {
 		return err
 	}

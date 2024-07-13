@@ -103,7 +103,7 @@ func (handler *Handler) handleRegister(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// create user
-	err = handler.userStore.CreateUser(payload.FirstName, payload.LastName, payload.Email, payload.Phone, hashedPassword)
+	err = handler.userStore.CreateUser(payload.Name, payload.Email, payload.Phone, hashedPassword)
 	if err != nil {
 		utils.WriteError(w, http.StatusInternalServerError, err)
 		return
@@ -146,7 +146,7 @@ func (handler *Handler) handleUpdateUser(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	err = handler.userStore.UpdateUser(userID, payload.FirstName, payload.LastName, payload.Email, payload.Phone)
+	err = handler.userStore.UpdateUser(userID, payload.Name, payload.Email, payload.Phone)
 	if err != nil {
 		utils.WriteError(w, http.StatusInternalServerError, err)
 		return
