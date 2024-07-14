@@ -62,7 +62,7 @@ func (handler *Handler) handleCreateMiscFile(w http.ResponseWriter, r *http.Requ
 		utils.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
-	utils.WriteJSON(w, http.StatusOK, map[string]uint{"miscFileId": miscFileID})
+	utils.WriteJSON(w, http.StatusOK, map[string]uint{"id": miscFileID})
 }
 
 func (handler *Handler) handleDeleteMiscFile(w http.ResponseWriter, r *http.Request) {

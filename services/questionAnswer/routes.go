@@ -61,7 +61,7 @@ func (handler *Handler) handleCreateQuestionAnswer(w http.ResponseWriter, r *htt
 		utils.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
-	utils.WriteJSON(w, http.StatusOK, map[string]uint{"questionAnswerId": questionAnswerID})
+	utils.WriteJSON(w, http.StatusOK, map[string]uint{"id": questionAnswerID})
 }
 
 func (handler *Handler) handleUpdateQuestionAnswer(w http.ResponseWriter, r *http.Request) {

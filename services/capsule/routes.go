@@ -175,7 +175,7 @@ func (handler *Handler) handleCreateCapsule(w http.ResponseWriter, r *http.Reque
 		utils.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
-	utils.WriteJSON(w, http.StatusOK, map[string]uint{"capsuleId": capsuleID})
+	utils.WriteJSON(w, http.StatusOK, map[string]uint{"id": capsuleID})
 }
 
 func (handler *Handler) handleJoinCapsule(w http.ResponseWriter, r *http.Request) {

@@ -61,7 +61,7 @@ func (handler *Handler) handleCreateWriting(w http.ResponseWriter, r *http.Reque
 		utils.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
-	utils.WriteJSON(w, http.StatusOK, map[string]uint{"writingId": writingID})
+	utils.WriteJSON(w, http.StatusOK, map[string]uint{"id": writingID})
 }
 
 func (handler *Handler) handleUpdateWriting(w http.ResponseWriter, r *http.Request) {

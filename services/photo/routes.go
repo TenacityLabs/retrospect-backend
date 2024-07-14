@@ -62,7 +62,7 @@ func (handler *Handler) handleCreatePhoto(w http.ResponseWriter, r *http.Request
 		utils.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
-	utils.WriteJSON(w, http.StatusOK, map[string]uint{"photoId": photoID})
+	utils.WriteJSON(w, http.StatusOK, map[string]uint{"id": photoID})
 }
 
 func (handler *Handler) handleDeletePhoto(w http.ResponseWriter, r *http.Request) {
