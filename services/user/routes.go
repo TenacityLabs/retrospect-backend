@@ -3,6 +3,7 @@ package user
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/TenacityLabs/retrospect-backend/config"
 	"github.com/TenacityLabs/retrospect-backend/services/auth"
@@ -27,6 +28,7 @@ func (h *Handler) RegisterRoutes(router *mux.Router) {
 	router.HandleFunc("/user/login", h.handleLogin).Methods("POST")
 	router.HandleFunc("/user/register", h.handleRegister).Methods("POST")
 	router.HandleFunc("/user", auth.WithJWTAuth(h.handleGetUser, h.userStore)).Methods("GET")
+	router.HandleFunc("/user/name/{userId}", auth.WithJWTAuth(h.handleGetUserNameById, h.userStore)).Methods("GET")
 	router.HandleFunc("/user/delete", auth.WithJWTAuth(h.handleDeleteUser, h.userStore)).Methods("POST")
 	router.HandleFunc("/user/update", auth.WithJWTAuth(h.handleUpdateUser, h.userStore)).Methods("POST")
 	router.HandleFunc("/user/update-password", auth.WithJWTAuth(h.handleUpdateUserPassword, h.userStore)).Methods("POST")
@@ -122,6 +124,28 @@ func (handler *Handler) handleGetUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.WriteJSON(w, http.StatusOK, map[string]types.User{"user": *user})
+}
+
+func (handler *Handler) handleGetUserNameById(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	capsuleIdStr, ok := vars["userId"]
+	if !ok {
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("userId not provided"))
+		return
+	}
+	userId, err := strconv.Atoi(capsuleIdStr)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("invalid capsuleId"))
+		return
+	}
+
+	name, err := handler.userStore.GetUserNameById(uint(userId))
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusOK, map[string]string{"name": name})
 }
 
 func (handler *Handler) handleDeleteUser(w http.ResponseWriter, r *http.Request) {

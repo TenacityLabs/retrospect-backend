@@ -22,6 +22,7 @@ type User struct {
 type UserStore interface {
 	GetUserByEmail(email string) (*User, error)
 	GetUserById(userId uint) (*User, error)
+	GetUserNameById(userId uint) (string, error)
 	CreateUser(name string, email string, phone string, password string) error
 	DeleteUser(userId uint) error
 	UpdateUser(userId uint, name string, email string, phone string) error

@@ -37,6 +37,16 @@ func scanRowIntoUser(row *sql.Rows) (*types.User, error) {
 	return user, nil
 }
 
+func scanRowIntoName(row *sql.Rows) (string, error) {
+	var name string
+	err := row.Scan(&name)
+	if err != nil {
+		return "", err
+	}
+
+	return name, nil
+}
+
 func scanRowsIntoPhones(rows *sql.Rows) ([]string, error) {
 	var phones []string
 	for rows.Next() {
@@ -118,6 +128,23 @@ func (userStore *UserStore) GetUserById(userId uint) (*types.User, error) {
 	}
 
 	return user, nil
+}
+
+func (userStore *UserStore) GetUserNameById(userId uint) (string, error) {
+	rows, err := userStore.db.Query("SELECT name FROM users WHERE id = ?", userId)
+	if err != nil {
+		return "", err
+	}
+
+	var name string
+	for rows.Next() {
+		name, err = scanRowIntoName(rows)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	return name, nil
 }
 
 func (userStore *UserStore) CreateUser(name string, email string, phone string, password string) error {
