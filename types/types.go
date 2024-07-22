@@ -79,6 +79,7 @@ type Referral struct {
 
 type FileStore interface {
 	UploadFile(userId uint, file multipart.File, fileHeader *multipart.FileHeader) (string, string, error)
+	UploadFileWithName(objectName string, file multipart.File, fileHeader *multipart.FileHeader) (string, string, error)
 	DeleteFile(objectName string) error
 }
 

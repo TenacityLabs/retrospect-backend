@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log"
 	"math/rand"
 	"mime/multipart"
 	"path/filepath"
@@ -67,6 +68,34 @@ func (fileStore *FileStore) UploadFile(userId uint, file multipart.File, fileHea
 
 	bucketName := config.Envs.GCSBucketName
 	fileURL := fmt.Sprintf("https://storage.googleapis.com/%s/%s", bucketName, randomFileName)
+
+	return objectName, fileURL, nil
+}
+
+func (fileStore *FileStore) UploadFileWithName(objectName string, file multipart.File, fileHeader *multipart.FileHeader) (string, string, error) {
+	object := fileStore.bucket.Object(objectName)
+	writer := object.NewWriter(context.Background())
+
+	defer file.Close()
+	_, err := io.Copy(writer, file)
+	if err != nil {
+		return "", "", err
+	}
+	err = writer.Close()
+	if err != nil {
+		return "", "", err
+	}
+
+	attrs, err := object.Attrs(context.Background())
+	if err != nil {
+		return "", "", err
+	}
+	newFileURL := attrs.MediaLink
+	newObjectName := object.ObjectName()
+	log.Println("new", newObjectName, newFileURL)
+
+	bucketName := config.Envs.GCSBucketName
+	fileURL := fmt.Sprintf("https://storage.googleapis.com/%s/%s", bucketName, objectName)
 
 	return objectName, fileURL, nil
 }
