@@ -1,4 +1,5 @@
 .history
 .env
+.env.production
 # bin/
 google-cloud-credentials.json

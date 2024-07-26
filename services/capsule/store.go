@@ -27,7 +27,7 @@ func NewCapsuleStore(db *sql.DB) *CapsuleStore {
 func scanRowIntoCapsule(row *sql.Rows) (*types.Capsule, error) {
 	capsule := new(types.Capsule)
 
-	var capsuleMember1Id, capsuleMember2Id, capsuleMember3Id sql.NullInt64
+	var capsuleMember1Id, capsuleMember2Id, capsuleMember3Id, capsuleMember4Id, capsuleMember5Id sql.NullInt64
 
 	err := row.Scan(
 		&capsule.ID,
@@ -38,6 +38,13 @@ func scanRowIntoCapsule(row *sql.Rows) (*types.Capsule, error) {
 		&capsuleMember1Id,
 		&capsuleMember2Id,
 		&capsuleMember3Id,
+		&capsuleMember4Id,
+		&capsuleMember5Id,
+		&capsule.CapsuleMember1Sealed,
+		&capsule.CapsuleMember2Sealed,
+		&capsule.CapsuleMember3Sealed,
+		&capsule.CapsuleMember4Sealed,
+		&capsule.CapsuleMember5Sealed,
 		&capsule.Vessel,
 		&capsule.Name,
 		&capsule.DateToOpen,
@@ -54,24 +61,32 @@ func scanRowIntoCapsule(row *sql.Rows) (*types.Capsule, error) {
 	} else {
 		capsule.CapsuleMember1ID = 0
 	}
-
 	if capsuleMember2Id.Valid {
 		capsule.CapsuleMember2ID = uint(capsuleMember2Id.Int64)
 	} else {
 		capsule.CapsuleMember2ID = 0
 	}
-
 	if capsuleMember3Id.Valid {
 		capsule.CapsuleMember3ID = uint(capsuleMember3Id.Int64)
 	} else {
 		capsule.CapsuleMember3ID = 0
+	}
+	if capsuleMember4Id.Valid {
+		capsule.CapsuleMember4ID = uint(capsuleMember4Id.Int64)
+	} else {
+		capsule.CapsuleMember4ID = 0
+	}
+	if capsuleMember5Id.Valid {
+		capsule.CapsuleMember5ID = uint(capsuleMember5Id.Int64)
+	} else {
+		capsule.CapsuleMember5ID = 0
 	}
 
 	return capsule, nil
 }
 
 func (capsuleStore *CapsuleStore) GetCapsules(userId uint) ([]types.Capsule, error) {
-	rows, err := capsuleStore.db.Query("SELECT * FROM capsules WHERE capsuleOwnerId = ? OR capsuleMember1Id = ? OR capsuleMember2Id = ? OR capsuleMember3Id = ?", userId, userId, userId, userId)
+	rows, err := capsuleStore.db.Query("SELECT * FROM capsules WHERE capsuleOwnerId = ? OR capsuleMember1Id = ? OR capsuleMember2Id = ? OR capsuleMember3Id = ? OR capsuleMember4Id = ? OR capsuleMember5Id = ?", userId, userId, userId, userId, userId, userId)
 	if err != nil {
 		return nil, err
 	}
@@ -105,7 +120,7 @@ func (capsuleStore *CapsuleStore) GetCapsuleById(userId uint, capsuleId uint) (t
 	if capsule.ID != capsuleId {
 		return *capsule, fmt.Errorf("capsule not found")
 	}
-	if capsule.CapsuleOwnerID != userId && capsule.CapsuleMember1ID != userId && capsule.CapsuleMember2ID != userId && capsule.CapsuleMember3ID != userId {
+	if capsule.CapsuleOwnerID != userId && capsule.CapsuleMember1ID != userId && capsule.CapsuleMember2ID != userId && capsule.CapsuleMember3ID != userId && capsule.CapsuleMember4ID != userId && capsule.CapsuleMember5ID != userId {
 		return *capsule, fmt.Errorf("user is not authorized to view this capsule")
 	}
 	if capsule.Sealed == "sealed" || capsule.Sealed == "opened" {
@@ -132,7 +147,7 @@ func (capsuleStore *CapsuleStore) GetCapsuleByIdUnsafe(userId uint, capsuleId ui
 	if capsule.ID != capsuleId {
 		return *capsule, fmt.Errorf("capsule not found")
 	}
-	if capsule.CapsuleOwnerID != userId && capsule.CapsuleMember1ID != userId && capsule.CapsuleMember2ID != userId && capsule.CapsuleMember3ID != userId {
+	if capsule.CapsuleOwnerID != userId && capsule.CapsuleMember1ID != userId && capsule.CapsuleMember2ID != userId && capsule.CapsuleMember3ID != userId && capsule.CapsuleMember4ID != userId && capsule.CapsuleMember5ID != userId {
 		return *capsule, fmt.Errorf("user is not authorized to view this capsule")
 	}
 
@@ -218,7 +233,7 @@ func (capsuleStore *CapsuleStore) JoinCapsule(userId uint, code string) error {
 	}
 
 	// check if the user is already a member of the capsule
-	if capsule.CapsuleOwnerID == userId || capsule.CapsuleMember1ID == userId || capsule.CapsuleMember2ID == userId || capsule.CapsuleMember3ID == userId {
+	if capsule.CapsuleOwnerID == userId || capsule.CapsuleMember1ID == userId || capsule.CapsuleMember2ID == userId || capsule.CapsuleMember3ID == userId || capsule.CapsuleMember4ID == userId || capsule.CapsuleMember5ID == userId {
 		return fmt.Errorf("you are already a member of the capsule")
 	}
 
@@ -229,6 +244,10 @@ func (capsuleStore *CapsuleStore) JoinCapsule(userId uint, code string) error {
 		_, err = capsuleStore.db.Exec("UPDATE capsules SET capsuleMember2Id = ? WHERE id = ?", userId, capsule.ID)
 	} else if capsule.CapsuleMember3ID == 0 {
 		_, err = capsuleStore.db.Exec("UPDATE capsules SET capsuleMember3Id = ? WHERE id = ?", userId, capsule.ID)
+	} else if capsule.CapsuleMember4ID == 0 {
+		_, err = capsuleStore.db.Exec("UPDATE capsules SET capsuleMember4Id = ? WHERE id = ?", userId, capsule.ID)
+	} else if capsule.CapsuleMember5ID == 0 {
+		_, err = capsuleStore.db.Exec("UPDATE capsules SET capsuleMember5Id = ? WHERE id = ?", userId, capsule.ID)
 	} else {
 		return fmt.Errorf("capsule already has the maximum number of members")
 	}
@@ -358,6 +377,16 @@ func (capsuleStore *CapsuleStore) NameCapsule(userId uint, capsuleId uint, name 
 
 func (capsuleStore *CapsuleStore) SealCapsule(userId uint, capsuleId uint, dateToOpen time.Time) error {
 	_, err := capsuleStore.db.Exec("UPDATE capsules SET sealed = 'sealed', dateToOpen = ? WHERE id = ? AND capsuleOwnerId = ?", dateToOpen, capsuleId, userId)
+	return err
+}
+
+func (capsuleStore *CapsuleStore) MemberSealCapsule(userId uint, capsuleId uint, memberNumber uint) error {
+	if memberNumber < 1 || memberNumber > 5 {
+		return fmt.Errorf("invalid member number")
+	}
+
+	query := fmt.Sprintf("UPDATE capsules SET capsuleMember%dSealed = TRUE WHERE id = ? AND capsuleMember%dId = ?", memberNumber, memberNumber)
+	_, err := capsuleStore.db.Exec(query, capsuleId, userId)
 	return err
 }
 

@@ -10,21 +10,25 @@ import (
 // ====================================================================
 
 type User struct {
-	ID        uint      `json:"id"`
-	FirstName string    `json:"firstName"`
-	LastName  string    `json:"lastName"`
-	Email     string    `json:"email"`
-	Password  string    `json:"-"`
-	CreatedAt time.Time `json:"createdAt"`
+	ID            uint      `json:"id"`
+	Name          string    `json:"name"`
+	Email         string    `json:"email"`
+	Phone         string    `json:"phone"`
+	Password      string    `json:"-"`
+	ReferralCount uint      `json:"referralCount"`
+	CreatedAt     time.Time `json:"createdAt"`
 }
 
 type UserStore interface {
 	GetUserByEmail(email string) (*User, error)
 	GetUserById(userId uint) (*User, error)
-	CreateUser(firstName string, lastName string, email string, password string) error
+	GetUserNameById(userId uint) (string, error)
+	CreateUser(name string, email string, phone string, password string) error
 	DeleteUser(userId uint) error
-	UpdateUser(userId uint, firstName string, lastName string, email string) error
+	UpdateUser(userId uint, name string, email string, phone string) error
 	UpdateUserPassword(userId uint, password string) error
+	ProcessContacts([]Contact) ([]Contact, []Contact, []Contact, error)
+	AddReferral(userId uint, phone string) error
 }
 
 type LoginUserPayload struct {
@@ -33,20 +37,40 @@ type LoginUserPayload struct {
 }
 
 type RegisterUserPayload struct {
-	FirstName string `json:"firstName" validate:"required"`
-	LastName  string `json:"lastName" validate:"required"`
-	Email     string `json:"email" validate:"required,email"`
-	Password  string `json:"password" validate:"required,min=6,max=130"`
+	Name     string `json:"name" validate:"required"`
+	Email    string `json:"email" validate:"required,email"`
+	Phone    string `json:"phone" validate:"required,min=10,max=10"`
+	Password string `json:"password" validate:"required,min=6,max=130"`
 }
 
 type UpdateUserPayload struct {
-	FirstName string `json:"firstName" validate:"required"`
-	LastName  string `json:"lastName" validate:"required"`
-	Email     string `json:"email" validate:"required,email"`
+	Name  string `json:"name" validate:"required"`
+	Email string `json:"email" validate:"required,email"`
+	Phone string `json:"phone" validate:"required,min=10,max=10"`
 }
 
 type UpdateUserPasswordPayload struct {
 	Password string `json:"password" validate:"required,min=6,max=130"`
+}
+
+type ProcessContactsPayload struct {
+	Contacts []Contact `json:"contacts" validate:"required,dive"`
+}
+
+type AddReferralPayload struct {
+	Phone string `json:"phone" validate:"required,min=10,max=10"`
+}
+
+type Contact struct {
+	Name  string `json:"name"`
+	Phone string `json:"phone"`
+}
+
+type Referral struct {
+	ID            uint      `json:"id"`
+	Phone         string    `json:"phone"`
+	ReferralCount uint      `json:"referralCount"`
+	CreatedAt     time.Time `json:"createdAt"`
 }
 
 // ====================================================================
@@ -55,6 +79,7 @@ type UpdateUserPasswordPayload struct {
 
 type FileStore interface {
 	UploadFile(userId uint, file multipart.File, fileHeader *multipart.FileHeader) (string, string, error)
+	UploadFileWithName(objectName string, file multipart.File, fileHeader *multipart.FileHeader) (string, string, error)
 	DeleteFile(objectName string) error
 }
 
@@ -67,19 +92,29 @@ type DeleteFilePayload struct {
 // ====================================================================
 
 type Capsule struct {
-	ID               uint       `json:"id"`
-	Code             string     `json:"code"`
-	CreatedAt        time.Time  `json:"createdAt"`
-	Public           bool       `json:"public"`
-	CapsuleOwnerID   uint       `json:"capsuleOwnerId"`
-	CapsuleMember1ID uint       `json:"capsuleMember1Id"`
-	CapsuleMember2ID uint       `json:"capsuleMember2Id"`
-	CapsuleMember3ID uint       `json:"capsuleMember3Id"`
-	Vessel           string     `json:"vessel"`
-	Name             string     `json:"name"`
-	DateToOpen       *time.Time `json:"dateToOpen"`
-	EmailSent        bool       `json:"emailSent"`
-	Sealed           string     `json:"sealed"`
+	ID             uint      `json:"id"`
+	Code           string    `json:"code"`
+	CreatedAt      time.Time `json:"createdAt"`
+	Public         bool      `json:"public"`
+	CapsuleOwnerID uint      `json:"capsuleOwnerId"`
+
+	CapsuleMember1ID uint `json:"capsuleMember1Id"`
+	CapsuleMember2ID uint `json:"capsuleMember2Id"`
+	CapsuleMember3ID uint `json:"capsuleMember3Id"`
+	CapsuleMember4ID uint `json:"capsuleMember4Id"`
+	CapsuleMember5ID uint `json:"capsuleMember5Id"`
+
+	CapsuleMember1Sealed bool `json:"capsuleMember1Sealed"`
+	CapsuleMember2Sealed bool `json:"capsuleMember2Sealed"`
+	CapsuleMember3Sealed bool `json:"capsuleMember3Sealed"`
+	CapsuleMember4Sealed bool `json:"capsuleMember4Sealed"`
+	CapsuleMember5Sealed bool `json:"capsuleMember5Sealed"`
+
+	Vessel     string     `json:"vessel"`
+	Name       string     `json:"name"`
+	DateToOpen *time.Time `json:"dateToOpen"`
+	EmailSent  bool       `json:"emailSent"`
+	Sealed     string     `json:"sealed"`
 }
 
 type CapsuleStore interface {
@@ -91,6 +126,7 @@ type CapsuleStore interface {
 	DeleteCapsule(userId uint, capsuleId uint) ([]string, error)
 	NameCapsule(userId uint, capsuleId uint, name string) error
 	SealCapsule(userId uint, capsuleId uint, dateToOpen time.Time) error
+	MemberSealCapsule(userId uint, capsuleId uint, memberNumber uint) error
 	OpenCapsule(userId uint, capsuleId uint) error
 	SendReminderMail() error
 }
@@ -127,6 +163,10 @@ type NameCapsulePayload struct {
 type SealCapsulePayload struct {
 	CapsuleID  uint   `json:"capsuleId" validate:"required"`
 	DateToOpen string `json:"dateToOpen" validate:"required"`
+}
+
+type MemberSealCapsulePayload struct {
+	CapsuleID uint `json:"capsuleId" validate:"required"`
 }
 
 type OpenCapsulePayload struct {

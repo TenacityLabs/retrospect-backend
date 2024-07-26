@@ -62,7 +62,7 @@ func (handler *Handler) handleCreateAudio(w http.ResponseWriter, r *http.Request
 		utils.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
-	utils.WriteJSON(w, http.StatusOK, map[string]uint{"audioId": audioID})
+	utils.WriteJSON(w, http.StatusOK, map[string]uint{"id": audioID})
 }
 
 func (handler *Handler) handleDeleteAudio(w http.ResponseWriter, r *http.Request) {

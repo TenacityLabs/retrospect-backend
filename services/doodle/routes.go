@@ -62,7 +62,7 @@ func (handler *Handler) handleCreateDoodle(w http.ResponseWriter, r *http.Reques
 		utils.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
-	utils.WriteJSON(w, http.StatusOK, map[string]uint{"doodleId": doodleID})
+	utils.WriteJSON(w, http.StatusOK, map[string]uint{"id": doodleID})
 }
 
 func (handler *Handler) handleDeleteDoodle(w http.ResponseWriter, r *http.Request) {

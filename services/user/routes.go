@@ -3,6 +3,7 @@ package user
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/TenacityLabs/retrospect-backend/config"
 	"github.com/TenacityLabs/retrospect-backend/services/auth"
@@ -27,9 +28,12 @@ func (h *Handler) RegisterRoutes(router *mux.Router) {
 	router.HandleFunc("/user/login", h.handleLogin).Methods("POST")
 	router.HandleFunc("/user/register", h.handleRegister).Methods("POST")
 	router.HandleFunc("/user", auth.WithJWTAuth(h.handleGetUser, h.userStore)).Methods("GET")
+	router.HandleFunc("/user/name/{userId}", auth.WithJWTAuth(h.handleGetUserNameById, h.userStore)).Methods("GET")
 	router.HandleFunc("/user/delete", auth.WithJWTAuth(h.handleDeleteUser, h.userStore)).Methods("POST")
 	router.HandleFunc("/user/update", auth.WithJWTAuth(h.handleUpdateUser, h.userStore)).Methods("POST")
 	router.HandleFunc("/user/update-password", auth.WithJWTAuth(h.handleUpdateUserPassword, h.userStore)).Methods("POST")
+	router.HandleFunc("/user/process-contacts", auth.WithJWTAuth(h.handleProcessContacts, h.userStore)).Methods("POST")
+	router.HandleFunc("/user/add-referral", auth.WithJWTAuth(h.handleAddReferral, h.userStore)).Methods("POST")
 }
 
 func (handler *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
@@ -101,7 +105,7 @@ func (handler *Handler) handleRegister(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// create user
-	err = handler.userStore.CreateUser(payload.FirstName, payload.LastName, payload.Email, hashedPassword)
+	err = handler.userStore.CreateUser(payload.Name, payload.Email, payload.Phone, hashedPassword)
 	if err != nil {
 		utils.WriteError(w, http.StatusInternalServerError, err)
 		return
@@ -120,6 +124,28 @@ func (handler *Handler) handleGetUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.WriteJSON(w, http.StatusOK, map[string]types.User{"user": *user})
+}
+
+func (handler *Handler) handleGetUserNameById(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	capsuleIdStr, ok := vars["userId"]
+	if !ok {
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("userId not provided"))
+		return
+	}
+	userId, err := strconv.Atoi(capsuleIdStr)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("invalid capsuleId"))
+		return
+	}
+
+	name, err := handler.userStore.GetUserNameById(uint(userId))
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusOK, map[string]string{"name": name})
 }
 
 func (handler *Handler) handleDeleteUser(w http.ResponseWriter, r *http.Request) {
@@ -144,7 +170,7 @@ func (handler *Handler) handleUpdateUser(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	err = handler.userStore.UpdateUser(userID, payload.FirstName, payload.LastName, payload.Email)
+	err = handler.userStore.UpdateUser(userID, payload.Name, payload.Email, payload.Phone)
 	if err != nil {
 		utils.WriteError(w, http.StatusInternalServerError, err)
 		return
@@ -164,6 +190,46 @@ func (handler *Handler) handleUpdateUserPassword(w http.ResponseWriter, r *http.
 	}
 
 	err = handler.userStore.UpdateUserPassword(userID, payload.Password)
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusCreated, nil)
+}
+
+func (handler *Handler) handleProcessContacts(w http.ResponseWriter, r *http.Request) {
+	var payload types.ProcessContactsPayload
+	err := utils.ParseJSON(r, &payload)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	existingContacts, priorityContacts, freshContacts, err := handler.userStore.ProcessContacts(payload.Contacts)
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusOK, map[string]interface{}{
+		"existingContacts": existingContacts,
+		"priorityContacts": priorityContacts,
+		"freshContacts":    freshContacts,
+	})
+}
+
+func (handler *Handler) handleAddReferral(w http.ResponseWriter, r *http.Request) {
+	userId := auth.GetUserIdFromContext(r.Context())
+
+	var payload types.AddReferralPayload
+	err := utils.ParseJSON(r, &payload)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	err = handler.userStore.AddReferral(userId, payload.Phone)
 	if err != nil {
 		utils.WriteError(w, http.StatusInternalServerError, err)
 		return

@@ -60,7 +60,7 @@ func (handler *Handler) handleCreateSong(w http.ResponseWriter, r *http.Request)
 		utils.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
-	utils.WriteJSON(w, http.StatusOK, map[string]uint{"songId": songID})
+	utils.WriteJSON(w, http.StatusOK, map[string]uint{"id": songID})
 }
 
 func (handler *Handler) handleDeleteSong(w http.ResponseWriter, r *http.Request) {

@@ -63,6 +63,7 @@ func (handler *Handler) RegisterRoutes(router *mux.Router) {
 	router.HandleFunc("/capsules/delete", auth.WithJWTAuth(handler.handleDeleteCapsule, handler.userStore)).Methods(http.MethodPost)
 	router.HandleFunc("/capsules/name", auth.WithJWTAuth(handler.handleNameCapsule, handler.userStore)).Methods(http.MethodPost)
 	router.HandleFunc("/capsules/seal", auth.WithJWTAuth(handler.handleSealCapsule, handler.userStore)).Methods(http.MethodPost)
+	router.HandleFunc("/capsules/member-seal", auth.WithJWTAuth(handler.handleMemberSealCapsule, handler.userStore)).Methods(http.MethodPost)
 	router.HandleFunc("/capsules/open", auth.WithJWTAuth(handler.handleOpenCapsule, handler.userStore)).Methods(http.MethodPost)
 	router.HandleFunc("/capsules/send-reminder-mail", handler.handleSendReminderMail).Methods(http.MethodPost)
 }
@@ -174,7 +175,7 @@ func (handler *Handler) handleCreateCapsule(w http.ResponseWriter, r *http.Reque
 		utils.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
-	utils.WriteJSON(w, http.StatusOK, map[string]uint{"capsuleId": capsuleID})
+	utils.WriteJSON(w, http.StatusOK, map[string]uint{"id": capsuleID})
 }
 
 func (handler *Handler) handleJoinCapsule(w http.ResponseWriter, r *http.Request) {
@@ -322,7 +323,90 @@ func (handler *Handler) handleSealCapsule(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	if (capsule.CapsuleMember1ID != 0 && !capsule.CapsuleMember1Sealed) ||
+		(capsule.CapsuleMember2ID != 0 && !capsule.CapsuleMember2Sealed) ||
+		(capsule.CapsuleMember3ID != 0 && !capsule.CapsuleMember3Sealed) ||
+		(capsule.CapsuleMember4ID != 0 && !capsule.CapsuleMember4Sealed) ||
+		(capsule.CapsuleMember5ID != 0 && !capsule.CapsuleMember5Sealed) {
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("all members must seal the capsule before the owner can seal it"))
+		return
+	}
+
 	err = handler.capsuleStore.SealCapsule(userID, payload.CapsuleID, dateToOpen)
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+	utils.WriteJSON(w, http.StatusOK, nil)
+}
+
+func (handler *Handler) handleMemberSealCapsule(w http.ResponseWriter, r *http.Request) {
+	// get json payload
+	var payload types.OpenCapsulePayload
+	err := utils.ParseJSON(r, &payload)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	// validate payload
+	if err := utils.Validate.Struct(payload); err != nil {
+		errors := err.(validator.ValidationErrors)
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("invalid payload %v", errors))
+		return
+	}
+
+	userID := auth.GetUserIdFromContext(r.Context())
+
+	capsule, err := handler.capsuleStore.GetCapsuleById(userID, payload.CapsuleID)
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	if capsule.CapsuleOwnerID == userID {
+		utils.WriteError(w, http.StatusForbidden, fmt.Errorf("you are the owner of the capsule, you cannot seal the capsule as a member"))
+		return
+	}
+	if capsule.Sealed != "preseal" {
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("capsule has already been sealed (or opened)"))
+		return
+	}
+	if capsule.CapsuleMember1ID == userID {
+		if capsule.CapsuleMember1Sealed {
+			utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("you have already sealed the capsule"))
+			return
+		}
+		err = handler.capsuleStore.MemberSealCapsule(userID, payload.CapsuleID, 1)
+	}
+	if capsule.CapsuleMember2ID == userID {
+		if capsule.CapsuleMember2Sealed {
+			utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("you have already sealed the capsule"))
+			return
+		}
+		err = handler.capsuleStore.MemberSealCapsule(userID, payload.CapsuleID, 2)
+	}
+	if capsule.CapsuleMember3ID == userID {
+		if capsule.CapsuleMember3Sealed {
+			utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("you have already sealed the capsule"))
+			return
+		}
+		err = handler.capsuleStore.MemberSealCapsule(userID, payload.CapsuleID, 3)
+	}
+	if capsule.CapsuleMember4ID == userID {
+		if capsule.CapsuleMember4Sealed {
+			utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("you have already sealed the capsule"))
+			return
+		}
+		err = handler.capsuleStore.MemberSealCapsule(userID, payload.CapsuleID, 4)
+	}
+	if capsule.CapsuleMember5ID == userID {
+		if capsule.CapsuleMember5Sealed {
+			utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("you have already sealed the capsule"))
+			return
+		}
+		err = handler.capsuleStore.MemberSealCapsule(userID, payload.CapsuleID, 5)
+	}
 	if err != nil {
 		utils.WriteError(w, http.StatusInternalServerError, err)
 		return
