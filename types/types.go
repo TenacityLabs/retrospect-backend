@@ -399,3 +399,16 @@ type DeleteMiscFilePayload struct {
 	CapsuleID  uint `json:"capsuleId" validate:"required"`
 	MiscFileID uint `json:"miscFileId" validate:"required"`
 }
+
+type SendVerificationPayload struct {
+	Phone string `json:"phone" validate:"required,min=10,max=10"`
+}
+
+type VerifyCodePayload struct {
+	Phone string `json:"phone" validate:"required,min=10,max=10"`
+	Code  string `json:"code" validate:"required,len=6"`
+}
+type TextVerificationStore interface {
+    SendVerification(phone string) error
+    CheckVerification(phone, code string) (bool, error)
+}

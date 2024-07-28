@@ -20,8 +20,9 @@ import (
 	"github.com/TenacityLabs/retrospect-backend/services/writing"
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
+	"github.com/twilio/twilio-go"
+    "github.com/TenacityLabs/retrospect-backend/services/textverification"
 )
-
 type APIServer struct {
 	addr string
 	db   *sql.DB
@@ -48,6 +49,10 @@ func (server *APIServer) Run() error {
 	router := mux.NewRouter()
 	subrouter := router.PathPrefix("/api/v1").Subrouter()
 
+	twilioClient := twilio.NewRestClientWithParams(twilio.ClientParams{
+		Username: config.Envs.TwilioAccountSID,
+		Password: config.Envs.TwilioAuthToken,
+	})
 	userStore := user.NewUserStore(server.db)
 	capsuleStore := capsule.NewCapsuleStore(server.db)
 	fileStore := file.NewFileStore(bucket)
@@ -59,6 +64,8 @@ func (server *APIServer) Run() error {
 	audioStore := audio.NewAudioStore(server.db)
 	doodleStore := doodle.NewDoodleStore(server.db)
 	miscFileStore := miscFile.NewMiscFileStore(server.db)
+	textVerificationStore := textverification.NewTextVerificationStore(server.db, twilioClient, config.Envs.TwilioVerifyServiceSID)
+
 
 	userHandler := user.NewHandler(userStore)
 	userHandler.RegisterRoutes(subrouter)
@@ -74,6 +81,7 @@ func (server *APIServer) Run() error {
 		audioStore,
 		doodleStore,
 		miscFileStore,
+		textVerificationStore,
 	)
 	capsuleHandler.RegisterRoutes(subrouter)
 	fileHandler := file.NewHandler(userStore, fileStore)
@@ -94,6 +102,9 @@ func (server *APIServer) Run() error {
 	miscFileHandler := miscFile.NewHandler(capsuleStore, userStore, fileStore, miscFileStore)
 	miscFileHandler.RegisterRoutes(subrouter)
 
+	textVerificationHandler := textverification.NewHandler(textVerificationStore, twilioClient, config.Envs.TwilioVerifyServiceSID)
+	textVerificationHandler.RegisterRoutes(subrouter)
+
 	// TODO: limit origins for prod
 	c := cors.New(cors.Options{
 		AllowedOrigins: []string{"*"},
@@ -102,5 +113,6 @@ func (server *APIServer) Run() error {
 	handler := c.Handler(router)
 
 	log.Println("Listening on", server.addr)
+
 	return http.ListenAndServe(server.addr, handler)
 }
