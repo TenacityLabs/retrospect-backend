@@ -19,7 +19,6 @@ type Handler struct {
 	verifyServiceSID string
 }
 
-
 func NewHandler(store *TextVerificationStore, twilioClient *twilio.RestClient, verifyServiceSID string) *Handler {
 	return &Handler{
 		store:            store,
@@ -29,7 +28,7 @@ func NewHandler(store *TextVerificationStore, twilioClient *twilio.RestClient, v
 }
 
 func (h *Handler) HandleSendVerification(w http.ResponseWriter, r *http.Request) {
-	
+	log.Println("HandleSendVerification was hit")
 	var payload types.SendVerificationPayload
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
