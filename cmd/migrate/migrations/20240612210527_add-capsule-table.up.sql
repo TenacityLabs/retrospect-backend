@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS capsules (
   `capsuleMember4Sealed` BOOLEAN NOT NULL DEFAULT FALSE,
   `capsuleMember5Sealed` BOOLEAN NOT NULL DEFAULT FALSE,
 
-  `vessel` ENUM('box', 'suitcase', 'guitar case', 'bottle', 'shoe', 'garbage') NOT NULL,
+  `vessel` VARCHAR(64) NOT NULL, -- refers to strings like "suitcase", "box", "jar", etc.
 
   `name` VARCHAR(255) NOT NULL,
   `dateToOpen` TIMESTAMP, -- date to open refers to the date when the time capsule can be opened
