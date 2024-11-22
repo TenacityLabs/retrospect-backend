@@ -21,6 +21,9 @@ type Config struct {
 	GCSBucketName          string
 	GmailAppPassword       string
 	AdminAPIKey            string
+	TwilioAccountSID 	   string
+	TwilioAuthToken		   string
+	TwilioVerifyServiceSID string
 }
 
 // create global variable so that env isn't reinitialized every time it's called

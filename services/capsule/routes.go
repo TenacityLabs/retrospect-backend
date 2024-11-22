@@ -25,6 +25,7 @@ type Handler struct {
 	audioStore          types.AudioStore
 	doodleStore         types.DoodleStore
 	miscFileStore       types.MiscFileStore
+	textVerificationStore types.TextVerificationStore
 }
 
 func NewHandler(
@@ -39,6 +40,7 @@ func NewHandler(
 	audioStore types.AudioStore,
 	doodleStore types.DoodleStore,
 	miscFileStore types.MiscFileStore,
+	textVerificationStore types.TextVerificationStore,
 ) *Handler {
 	return &Handler{
 		capsuleStore: capsuleStore,
